@@ -167,6 +167,7 @@
       pointer-events: none;
     }
   </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
@@ -6878,6 +6879,11 @@
         }
       });
     }
+
+// Initialize Supabase
+const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
     
     stars.forEach(star => {
       star.addEventListener('mouseover', function() {
@@ -6909,35 +6915,68 @@
     // Gebruik een unieke key per kaart voor de reviews
     const reviewsKey = "reviews_" + cardInfo.Name;
     
-    function submitReview() {
-      const comment = document.getElementById("comment").value.trim();
-      if (!selectedRating || !comment) {
-        alert("Please provide a rating and a comment.");
-        return;
-      }
-      const review = { rating: selectedRating, comment: comment };
-      let reviews = JSON.parse(localStorage.getItem(reviewsKey)) || [];
-      reviews.push(review);
-      localStorage.setItem(reviewsKey, JSON.stringify(reviews));
-      
-      // Reset rating en tekstvak
-      selectedRating = 0;
-      updateSelectedStars();
-      document.getElementById("comment").value = "";
-      loadReviews();
-    }
+// Make sure this function is declared async because we use await inside.
+async function submitReview() {
+  const comment = document.getElementById("comment").value.trim();
+  if (!selectedRating || !comment) {
+    alert("Please provide a rating and a comment.");
+    return;
+  }
+  
+  // Build the review object. We also include the card name so we know which card this review is for.
+  const review = {
+    card: cardInfo.Name,    // cardInfo must be defined earlier in your code
+    rating: selectedRating,
+    comment: comment
+  };
+  
+  // Insert the review into the 'reviews' table in Supabase
+  const { data, error } = await supabase
+    .from('reviews')
+    .insert([review]);
+  
+  if (error) {
+    console.error("Error submitting review:", error);
+    alert("There was an error submitting your review.");
+    return;
+  }
+  
+  // Reset rating and comment input
+  selectedRating = 0;
+  updateSelectedStars();
+  document.getElementById("comment").value = "";
+  
+  // Reload reviews from the database
+  loadReviews();
+}
+
     
-    function loadReviews() {
-      const reviewList = document.getElementById("reviewList");
-      reviewList.innerHTML = "";
-      let reviews = JSON.parse(localStorage.getItem(reviewsKey)) || [];
-      reviews.forEach(review => {
-        const div = document.createElement("div");
-        div.className = "review-item";
-        div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
-        reviewList.appendChild(div);
-      });
-    }
+// Declare as async because we use await to fetch data from Supabase.
+async function loadReviews() {
+  const reviewList = document.getElementById("reviewList");
+  reviewList.innerHTML = "";
+  
+  // Fetch all reviews for the current card from the 'reviews' table,
+  // ordering them by the created_at field (most recent first).
+  const { data: reviews, error } = await supabase
+    .from('reviews')
+    .select('*')
+    .eq('card', cardInfo.Name) // Only get reviews for this card
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error("Error loading reviews:", error);
+    return;
+  }
+  
+  // Loop over each review and create the HTML elements to display it.
+  reviews.forEach(review => {
+    const div = document.createElement("div");
+    div.className = "review-item";
+    div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
+    reviewList.appendChild(div);
+  });
+}
     
     document.addEventListener("DOMContentLoaded", loadReviews);
     
