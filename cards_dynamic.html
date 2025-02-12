@@ -6899,6 +6899,7 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
       star.addEventListener('click', function() {
         selectedRating = parseInt(this.getAttribute('data-value'));
         updateSelectedStars();
+          console.log("Star clicked, rating set to:", selectedRating);
       });
     });
     
