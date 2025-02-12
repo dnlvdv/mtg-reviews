@@ -6916,6 +6916,7 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
     
 // Make sure this function is declared async because we use await inside.
 async function submitReview() {
+    console.log("submitReview called. selectedRating:", selectedRating);
   const comment = document.getElementById("comment").value.trim();
   if (!selectedRating || !comment) {
     alert("Please provide a rating and a comment.");
