@@ -6859,12 +6859,18 @@
       // Als er geen parameter is of de kaart niet wordt gevonden, gebruik dan een standaardkaart.
       cardInfo = cardData[0];
     }
+        console.log("cardInfo:", cardInfo); // Debug log
     
     // 3. Vul de pagina dynamisch in (afbeelding en naam)
     // Let op: voeg "Pictures/" toe voor de juiste map!
     document.getElementById("cardImage").src = "Pictures/" + cardInfo.Picture;
     document.getElementById("cardImage").alt = cardInfo.Name;
     document.getElementById("cardName").textContent = cardInfo.Name;
+
+    // Initialize Supabase
+const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
+const supabase = supabase.createClient(supabaseUrl, supabaseKey);
     
     // 4. Reviewfunctionaliteit (ster-rating en review-opslag)
     let selectedRating = 0;
@@ -6880,11 +6886,8 @@
       });
     }
 
-// Initialize Supabase
-const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
-const supabase = supabase.createClient(supabaseUrl, supabaseKey);
-    
+    // added function
+        function updateSelectedStars() {
     stars.forEach(star => {
       star.addEventListener('mouseover', function() {
         const rating = parseInt(this.getAttribute('data-value'));
@@ -6903,15 +6906,6 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
       });
     });
     
-    function updateSelectedStars() {
-      stars.forEach(star => {
-        if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
-          star.classList.add('selected');
-        } else {
-          star.classList.remove('selected');
-        }
-      });
-    }
     
     // Gebruik een unieke key per kaart voor de reviews
     const reviewsKey = "reviews_" + cardInfo.Name;
