@@ -6914,10 +6914,6 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
       });
     });
     
-    
-    // Gebruik een unieke key per kaart voor de reviews
-    const reviewsKey = "reviews_" + cardInfo.Name;
-    
 // Make sure this function is declared async because we use await inside.
 async function submitReview() {
   const comment = document.getElementById("comment").value.trim();
