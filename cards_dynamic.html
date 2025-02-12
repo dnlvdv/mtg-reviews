@@ -6872,7 +6872,7 @@ const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
 const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
 const supabase = supabase.createClient(supabaseUrl, supabaseKey);
     
-    // 4. Reviewfunctionaliteit (ster-rating en review-opslag)
+    // 5. Star rating functionality
     let selectedRating = 0;
     const stars = document.querySelectorAll('.star');
     
@@ -6885,9 +6885,17 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
         }
       });
     }
-
-    // added function
-        function updateSelectedStars() {
+    
+    function updateSelectedStars() {
+      stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
+          star.classList.add('selected');
+        } else {
+          star.classList.remove('selected');
+        }
+      });
+    }
+    
     stars.forEach(star => {
       star.addEventListener('mouseover', function() {
         const rating = parseInt(this.getAttribute('data-value'));
@@ -6902,7 +6910,7 @@ const supabase = supabase.createClient(supabaseUrl, supabaseKey);
       star.addEventListener('click', function() {
         selectedRating = parseInt(this.getAttribute('data-value'));
         updateSelectedStars();
-          console.log("Star clicked, rating set to:", selectedRating);
+        console.log("Star clicked, rating set to:", selectedRating);
       });
     });
     
