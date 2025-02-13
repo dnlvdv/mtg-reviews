@@ -6716,6 +6716,11 @@
     "Picture": "Sab_Sunen__Luxa_Embodied.png"
   }
 ];
+
+
+  // Filter the cards for the Aether Drift set
+  const setCards = cardData.filter(card => card.Set.toLowerCase() === 'DFT');
+  const cardInfo = setCards[0];
     
     // Dynamisch de kaart-items genereren in de card-grid
     const cardGrid = document.getElementById('cardGrid');
