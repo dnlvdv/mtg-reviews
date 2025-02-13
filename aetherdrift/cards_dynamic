@@ -1,0 +1,7038 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MTG Card Review</title>
+  <!-- Modern Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1e1e1e, #121212);
+      color: #e0e0e0;
+      margin: 0;
+      padding: 20px;
+      display: flex;
+      justify-content: center;
+      align-items: center;
+      min-height: 100vh;
+    }
+
+    /* Homeknop styling */
+    .home-button {
+      position: fixed;
+      top: 20px;
+      left: 20px;
+      text-decoration: none;
+      color: #e0e0e0;
+      background: #007acc;
+      padding: 10px 15px;
+      border-radius: 8px;
+      font-weight: 700;
+      transition: background 0.3s;
+      z-index: 1100;
+    }
+
+    .home-button:hover {
+      background: #005f99;
+    }
+
+    .container {
+      background: #2b2b2b;
+      padding: 30px;
+      max-width: 500px;
+      width: 100%;
+      border-radius: 15px;
+      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
+      text-align: center;
+      position: relative;
+    }
+    h1, h2 {
+      margin: 0 0 20px 0;
+    }
+    /* Card image styling */
+    #cardImage {
+      width: 100%;
+      max-width: 300px;
+      border-radius: 8px;
+      margin-bottom: 20px;
+      cursor: zoom-in;
+      transition: transform 0.3s;
+    }
+    /* Star rating styling */
+    .rating {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin: 10px 0;
+    }
+    .star {
+      font-size: 32px;
+      cursor: pointer;
+      transition: color 0.2s, transform 0.2s;
+      color: #555;
+    }
+    .star:hover {
+      transform: scale(1.1);
+    }
+    .star.hovered,
+    .star.selected {
+      color: #ffcc00;
+    }
+    textarea {
+      width: 100%;
+      height: 100px;
+      margin-top: 15px;
+      padding: 10px;
+      border-radius: 8px;
+      border: 1px solid #444;
+      background: #1e1e1e;
+      color: #e0e0e0;
+      resize: vertical;
+    }
+    button {
+      margin-top: 15px;
+      padding: 12px 25px;
+      background: #007acc;
+      color: white;
+      border: none;
+      cursor: pointer;
+      border-radius: 8px;
+      font-size: 16px;
+      transition: background 0.3s;
+    }
+    button:hover {
+      background: #005f99;
+    }
+    .review-list {
+      margin-top: 25px;
+      text-align: left;
+    }
+    .review-item {
+      background: #333;
+      padding: 15px;
+      margin-top: 10px;
+      border-radius: 8px;
+    }
+    .review-item strong {
+      display: block;
+      margin-bottom: 5px;
+    }
+    /* Modal styling voor full-screen zoom */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+    .modal-content {
+      margin: auto;
+      display: block;
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+    }
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 35px;
+      color: #f1f1f1;
+      font-size: 40px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: #bbb;
+      text-decoration: none;
+    }
+    /* Magnifier styling */
+    #magnifier {
+      position: absolute;
+      border: 3px solid #fff;
+      border-radius: 50%;
+      cursor: none;
+      width: 350px;
+      height: 350px;
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      background-repeat: no-repeat;
+      display: none;
+      z-index: 1200;
+      pointer-events: none;
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <!-- Homeknop linksboven -->
+  <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-button">Home</a>
+
+  <div class="container">
+    <h1>MTG Card Review</h1>
+    <!-- Dynamisch ingestelde kaartafbeelding en -naam -->
+    <img id="cardImage" src="" alt="">
+    <h2 id="cardName"></h2>
+    
+    <!-- Reviewfunctionaliteit -->
+    <label for="rating">Rate this card:</label>
+    <div class="rating" id="rating">
+      <span class="star" data-value="1">★</span>
+      <span class="star" data-value="2">★</span>
+      <span class="star" data-value="3">★</span>
+      <span class="star" data-value="4">★</span>
+      <span class="star" data-value="5">★</span>
+    </div>
+    <textarea id="comment" placeholder="Leave your review here..."></textarea>
+    <button onclick="submitReview()">Submit</button>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+  
+  <!-- Modal voor full-screen zoom -->
+  <div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modalImg">
+  </div>
+  
+  <!-- Magnifier element -->
+  <div id="magnifier"></div>
+  
+  <script>
+    // 1. JSON-data met kaartgegevens
+    const cardData = [
+  {
+    "Set": "DFT",
+    "Number": 1,
+    "Name": "Air Response Unit",
+    "Cost": "{2}{W}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Brock Grossman",
+    "Link": "Reviewpage-Air-Response-Unit",
+    "": "",
+    "Picture": "Air_Response_Unit.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 2,
+    "Name": "Alacrian Armory",
+    "Cost": "{3}{W}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Artur Nakhodkin",
+    "Link": "Reviewpage-Alacrian-Armory",
+    "": "",
+    "Picture": "Alacrian_Armory.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 3,
+    "Name": "Basri, Tomorrow's Champion",
+    "Cost": "{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Kai Carpenter",
+    "Link": "Reviewpage-Basri,-Tomorrow's-Champion",
+    "": "",
+    "Picture": "Basri__Tomorrow_s_Champion.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 4,
+    "Name": "Brightfield Glider",
+    "Cost": "{W}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Andreia Ugrai",
+    "Link": "Reviewpage-Brightfield-Glider",
+    "": "",
+    "Picture": "Brightfield_Glider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 5,
+    "Name": "Brightfield Mustang",
+    "Cost": "{3}{W}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Slawomir Maniak",
+    "Link": "Reviewpage-Brightfield-Mustang",
+    "": "",
+    "Picture": "Brightfield_Mustang.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 6,
+    "Name": "Broadcast Rambler",
+    "Cost": "{4}{W}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Ioannis Fiore",
+    "Link": "Reviewpage-Broadcast-Rambler",
+    "": "",
+    "Picture": "Broadcast_Rambler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 7,
+    "Name": "Bulwark Ox",
+    "Cost": "{1}{W}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Brent Hollowell",
+    "Link": "Reviewpage-Bulwark-Ox",
+    "": "",
+    "Picture": "Bulwark_Ox.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 8,
+    "Name": "Canyon Vaulter",
+    "Cost": "{1}{W}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "David Astruga",
+    "Link": "Reviewpage-Canyon-Vaulter",
+    "": "",
+    "Picture": "Canyon_Vaulter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 9,
+    "Name": "Cloudspire Captain",
+    "Cost": "{2}{W}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Manny Edeko",
+    "Link": "Reviewpage-Cloudspire-Captain",
+    "": "",
+    "Picture": "Cloudspire_Captain.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 10,
+    "Name": "Collision Course",
+    "Cost": "{1}{W}",
+    "Type": "Sorcery",
+    "R": "C",
+    "Artist": "Konstantin Porubov",
+    "Link": "Reviewpage-Collision-Course",
+    "": "",
+    "Picture": "Collision_Course.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 11,
+    "Name": "Daring Mechanic",
+    "Cost": "{2}{W}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Elizabeth Peiró",
+    "Link": "Reviewpage-Daring-Mechanic",
+    "": "",
+    "Picture": "Daring_Mechanic.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 12,
+    "Name": "Detention Chariot",
+    "Cost": "{4}{W}{W}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Adrián Rodríguez Pérez",
+    "Link": "Reviewpage-Detention-Chariot",
+    "": "",
+    "Picture": "Detention_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 13,
+    "Name": "Gallant Strike",
+    "Cost": "{1}{W}",
+    "Type": "Instant",
+    "R": "U",
+    "Artist": "Brent Hollowell",
+    "Link": "Reviewpage-Gallant-Strike",
+    "": "",
+    "Picture": "Gallant_Strike.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 14,
+    "Name": "Gloryheath Lynx",
+    "Cost": "{1}{W}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Deruchenko Alexander",
+    "Link": "Reviewpage-Gloryheath-Lynx",
+    "": "",
+    "Picture": "Gloryheath_Lynx.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 15,
+    "Name": "Guardian Sunmare",
+    "Cost": "{3}{W}{W}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Christina Kraus",
+    "Link": "Reviewpage-Guardian-Sunmare",
+    "": "",
+    "Picture": "Guardian_Sunmare.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 16,
+    "Name": "Guidelight Synergist",
+    "Cost": "{3}{W}",
+    "Type": "Artifact Creature",
+    "R": "U",
+    "Artist": "Camille Alquier",
+    "Link": "Reviewpage-Guidelight-Synergist",
+    "": "",
+    "Picture": "Guidelight_Synergist.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 17,
+    "Name": "Interface Ace",
+    "Cost": "{1}{W}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "Wonchun Choi",
+    "Link": "Reviewpage-Interface-Ace",
+    "": "",
+    "Picture": "Interface_Ace.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 18,
+    "Name": "Leonin Surveyor",
+    "Cost": "{1}{W}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Valera Lutfullina",
+    "Link": "Reviewpage-Leonin-Surveyor",
+    "": "",
+    "Picture": "Leonin_Surveyor.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 19,
+    "Name": "Lightshield Parry",
+    "Cost": "{W}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Leanna Crossan",
+    "Link": "Reviewpage-Lightshield-Parry",
+    "": "",
+    "Picture": "Lightshield_Parry.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 20,
+    "Name": "Lightwheel Enhancements",
+    "Cost": "{W}",
+    "Type": "Enchantment",
+    "R": "C",
+    "Artist": "Yeong-Hao Han",
+    "Link": "Reviewpage-Lightwheel-Enhancements",
+    "": "",
+    "Picture": "Lightwheel_Enhancements.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 21,
+    "Name": "Lotusguard Disciple",
+    "Cost": "{2}{W}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Josiah \"Jo\" Cameron",
+    "Link": "Reviewpage-Lotusguard-Disciple",
+    "": "",
+    "Picture": "Lotusguard_Disciple.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 22,
+    "Name": "Nesting Bot",
+    "Cost": "{W}",
+    "Type": "Artifact Creature",
+    "R": "U",
+    "Artist": "Racrufi",
+    "Link": "Reviewpage-Nesting-Bot",
+    "": "",
+    "Picture": "Nesting_Bot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 23,
+    "Name": "Perilous Snare",
+    "Cost": "{2}{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Chris Seaman",
+    "Link": "Reviewpage-Perilous-Snare",
+    "": "",
+    "Picture": "Perilous_Snare.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 24,
+    "Name": "Pride of the Road",
+    "Cost": "{3}{W}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Alfonso Santano",
+    "Link": "Reviewpage-Pride-of-the-Road",
+    "": "",
+    "Picture": "Pride_of_the_Road.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 25,
+    "Name": "Ride's End",
+    "Cost": "{4}{W}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Dmitry Burmak",
+    "Link": "Reviewpage-Ride's-End",
+    "": "",
+    "Picture": "Ride_s_End.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 26,
+    "Name": "Roadside Assistance",
+    "Cost": "{2}{W}",
+    "Type": "Enchantment",
+    "R": "U",
+    "Artist": "Artur Nakhodkin",
+    "Link": "Reviewpage-Roadside-Assistance",
+    "": "",
+    "Picture": "Roadside_Assistance.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 27,
+    "Name": "Salvation Engine",
+    "Cost": "{4}{W}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Ben Wootten",
+    "Link": "Reviewpage-Salvation-Engine",
+    "": "",
+    "Picture": "Salvation_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 28,
+    "Name": "Skyseer's Chariot",
+    "Cost": "{1}{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Carl Critchlow",
+    "Link": "Reviewpage-Skyseer's-Chariot",
+    "": "",
+    "Picture": "Skyseer_s_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 29,
+    "Name": "Spectacular Pileup",
+    "Cost": "{3}{W}{W}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Zezhou Chen",
+    "Link": "Reviewpage-Spectacular-Pileup",
+    "": "",
+    "Picture": "Spectacular_Pileup.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 30,
+    "Name": "Spotcycle Scouter",
+    "Cost": "{1}{W}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Josiah \"Jo\" Cameron",
+    "Link": "Reviewpage-Spotcycle-Scouter",
+    "": "",
+    "Picture": "Spotcycle_Scouter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 31,
+    "Name": "Sundial, Dawn Tyrant",
+    "Cost": "{1}{W}",
+    "Type": "Lgd. Artifact Creature",
+    "R": "U",
+    "Artist": "Bruce Brenneise",
+    "Link": "Reviewpage-Sundial,-Dawn-Tyrant",
+    "": "",
+    "Picture": "Sundial__Dawn_Tyrant.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 32,
+    "Name": "Swiftwing Assailant",
+    "Cost": "{3}{W}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Pig Hands",
+    "Link": "Reviewpage-Swiftwing-Assailant",
+    "": "",
+    "Picture": "Swiftwing_Assailant.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 33,
+    "Name": "Tune Up",
+    "Cost": "{3}{W}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Chris Rallis",
+    "Link": "Reviewpage-Tune-Up",
+    "": "",
+    "Picture": "Tune_Up.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 34,
+    "Name": "Unswerving Sloth",
+    "Cost": "{3}{W}{W}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Daren Bader",
+    "Link": "Reviewpage-Unswerving-Sloth",
+    "": "",
+    "Picture": "Unswerving_Sloth.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 35,
+    "Name": "Valor's Flagship",
+    "Cost": "{4}{W}{W}{W}",
+    "Type": "Lgd. Artifact",
+    "R": "M",
+    "Artist": "Stephan Martiniere",
+    "Link": "Reviewpage-Valor's-Flagship",
+    "": "",
+    "Picture": "Valor_s_Flagship.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 36,
+    "Name": "Voyager Glidecar",
+    "Cost": "{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Eduardo Francisco",
+    "Link": "Reviewpage-Voyager-Glidecar",
+    "": "",
+    "Picture": "Voyager_Glidecar.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 37,
+    "Name": "Voyager Quickwelder",
+    "Cost": "{2}{W}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "Kenn Yap",
+    "Link": "Reviewpage-Voyager-Quickwelder",
+    "": "",
+    "Picture": "Voyager_Quickwelder.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 38,
+    "Name": "Aether Syphon",
+    "Cost": "{1}{U}{U}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Martin de Diego Sádaba",
+    "Link": "Reviewpage-Aether-Syphon",
+    "": "",
+    "Picture": "Aether_Syphon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 39,
+    "Name": "Bounce Off",
+    "Cost": "{U}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Deruchenko Alexander",
+    "Link": "Reviewpage-Bounce-Off",
+    "": "",
+    "Picture": "Bounce_Off.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 40,
+    "Name": "Caelorna, Coral Tyrant",
+    "Cost": "{1}{U}",
+    "Type": "Lgd. Creature",
+    "R": "U",
+    "Artist": "Deruchenko Alexander",
+    "Link": "Reviewpage-Caelorna,-Coral-Tyrant",
+    "": "",
+    "Picture": "Caelorna__Coral_Tyrant.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 41,
+    "Name": "Diversion Unit",
+    "Cost": "{1}{U}",
+    "Type": "Artifact Creature",
+    "R": "U",
+    "Artist": "Xabi Gaztelua",
+    "Link": "Reviewpage-Diversion-Unit",
+    "": "",
+    "Picture": "Diversion_Unit.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 42,
+    "Name": "Flood the Engine",
+    "Cost": "{2}{U}",
+    "Type": "Enchantment",
+    "R": "C",
+    "Artist": "Eric Wilkerson",
+    "Link": "Reviewpage-Flood-the-Engine",
+    "": "",
+    "Picture": "Flood_the_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 43,
+    "Name": "Gearseeker Serpent",
+    "Cost": "{5}{U}{U}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "J.P. Targete",
+    "Link": "Reviewpage-Gearseeker-Serpent",
+    "": "",
+    "Picture": "Gearseeker_Serpent.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 44,
+    "Name": "Glitch Ghost Surveyor",
+    "Cost": "{2}{U}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Johan Grenier",
+    "Link": "Reviewpage-Glitch-Ghost-Surveyor",
+    "": "",
+    "Picture": "Glitch_Ghost_Surveyor.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 45,
+    "Name": "Guidelight Optimizer",
+    "Cost": "{1}{U}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Guidelight-Optimizer",
+    "": "",
+    "Picture": "Guidelight_Optimizer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 46,
+    "Name": "Howler's Heavy",
+    "Cost": "{3}{U}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Borja Pindado",
+    "Link": "Reviewpage-Howler's-Heavy",
+    "": "",
+    "Picture": "Howler_s_Heavy.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 47,
+    "Name": "Hulldrifter",
+    "Cost": "{3}{U}{U}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Alexandre Honoré",
+    "Link": "Reviewpage-Hulldrifter",
+    "": "",
+    "Picture": "Hulldrifter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 48,
+    "Name": "Keen Buccaneer",
+    "Cost": "{2}{U}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Keen-Buccaneer",
+    "": "",
+    "Picture": "Keen_Buccaneer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 49,
+    "Name": "Memory Guardian",
+    "Cost": "{4}{U}",
+    "Type": "Artifact Creature",
+    "R": "U",
+    "Artist": "Hardy Fowler",
+    "Link": "Reviewpage-Memory-Guardian",
+    "": "",
+    "Picture": "Memory_Guardian.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 50,
+    "Name": "Midnight Mangler",
+    "Cost": "{1}{U}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Villarrte",
+    "Link": "Reviewpage-Midnight-Mangler",
+    "": "",
+    "Picture": "Midnight_Mangler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 51,
+    "Name": "Mindspring Merfolk",
+    "Cost": "{U}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Andreia Ugrai",
+    "Link": "Reviewpage-Mindspring-Merfolk",
+    "": "",
+    "Picture": "Mindspring_Merfolk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 52,
+    "Name": "Mu Yanling, Wind Rider",
+    "Cost": "{2}{U}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Justyna Dura",
+    "Link": "Reviewpage-Mu-Yanling,-Wind-Rider",
+    "": "",
+    "Picture": "Mu_Yanling__Wind_Rider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 53,
+    "Name": "Nimble Thopterist",
+    "Cost": "{3}{U}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Ioannis Fiore",
+    "Link": "Reviewpage-Nimble-Thopterist",
+    "": "",
+    "Picture": "Nimble_Thopterist.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 54,
+    "Name": "Possession Engine",
+    "Cost": "{3}{U}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Leroy Steinmann",
+    "Link": "Reviewpage-Possession-Engine",
+    "": "",
+    "Picture": "Possession_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 55,
+    "Name": "Rangers' Refueler",
+    "Cost": "{1}{U}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Samuel Perin",
+    "Link": "Reviewpage-Rangers'-Refueler",
+    "": "",
+    "Picture": "Rangers__Refueler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 56,
+    "Name": "Repurposing Bay",
+    "Cost": "{2}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "William Tempest",
+    "Link": "Reviewpage-Repurposing-Bay",
+    "": "",
+    "Picture": "Repurposing_Bay.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 57,
+    "Name": "Riverchurn Monument",
+    "Cost": "{1}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Anthony Devine",
+    "Link": "Reviewpage-Riverchurn-Monument",
+    "": "",
+    "Picture": "Riverchurn_Monument.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 58,
+    "Name": "Roadside Blowout",
+    "Cost": "{2}{U}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Michele Giorgi",
+    "Link": "Reviewpage-Roadside-Blowout",
+    "": "",
+    "Picture": "Roadside_Blowout.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 59,
+    "Name": "Sabotage Strategist",
+    "Cost": "{2}{U}{U}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Darren Tan",
+    "Link": "Reviewpage-Sabotage-Strategist",
+    "": "",
+    "Picture": "Sabotage_Strategist.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 60,
+    "Name": "Scrounging Skyray",
+    "Cost": "{1}{U}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Ron Spears",
+    "Link": "Reviewpage-Scrounging-Skyray",
+    "": "",
+    "Picture": "Scrounging_Skyray.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 61,
+    "Name": "Skystreak Engineer",
+    "Cost": "{1}{U}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Elizabeth Peiró",
+    "Link": "Reviewpage-Skystreak-Engineer",
+    "": "",
+    "Picture": "Skystreak_Engineer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 62,
+    "Name": "Slick Imitator",
+    "Cost": "{1}{U}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Xabi Gaztelua",
+    "Link": "Reviewpage-Slick-Imitator",
+    "": "",
+    "Picture": "Slick_Imitator.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 63,
+    "Name": "Spectral Interference",
+    "Cost": "{1}{U}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Steve Ellis",
+    "Link": "Reviewpage-Spectral-Interference",
+    "": "",
+    "Picture": "Spectral_Interference.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 64,
+    "Name": "Spell Pierce",
+    "Cost": "{U}",
+    "Type": "Instant",
+    "R": "U",
+    "Artist": "Maxime Minard",
+    "Link": "Reviewpage-Spell-Pierce",
+    "": "",
+    "Picture": "Spell_Pierce.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 65,
+    "Name": "Spikeshell Harrier",
+    "Cost": "{4}{U}",
+    "Type": "Artifact Creature",
+    "R": "U",
+    "Artist": "Alfonso Santano",
+    "Link": "Reviewpage-Spikeshell-Harrier",
+    "": "",
+    "Picture": "Spikeshell_Harrier.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 66,
+    "Name": "Stall Out",
+    "Cost": "{1}{U}",
+    "Type": "Sorcery",
+    "R": "C",
+    "Artist": "Inkognit",
+    "Link": "Reviewpage-Stall-Out",
+    "": "",
+    "Picture": "Stall_Out.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 67,
+    "Name": "Stock Up",
+    "Cost": "{2}{U}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Izzy",
+    "Link": "Reviewpage-Stock-Up",
+    "": "",
+    "Picture": "Stock_Up.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 68,
+    "Name": "Thopter Fabricator",
+    "Cost": "{2}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Racrufi",
+    "Link": "Reviewpage-Thopter-Fabricator",
+    "": "",
+    "Picture": "Thopter_Fabricator.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 69,
+    "Name": "Trade the Helm",
+    "Cost": "{4}{U}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Lius Lasahido",
+    "Link": "Reviewpage-Trade-the-Helm",
+    "": "",
+    "Picture": "Trade_the_Helm.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 70,
+    "Name": "Transit Mage",
+    "Cost": "{2}{U}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Mark Poole",
+    "Link": "Reviewpage-Transit-Mage",
+    "": "",
+    "Picture": "Transit_Mage.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 71,
+    "Name": "Trip Up",
+    "Cost": "{3}{U}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Josiah \"Jo\" Cameron",
+    "Link": "Reviewpage-Trip-Up",
+    "": "",
+    "Picture": "Trip_Up.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 72,
+    "Name": "Unstoppable Plan",
+    "Cost": "{2}{U}",
+    "Type": "Enchantment",
+    "R": "R",
+    "Artist": "Borja Pindado",
+    "Link": "Reviewpage-Unstoppable-Plan",
+    "": "",
+    "Picture": "Unstoppable_Plan.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 73,
+    "Name": "Vnwxt, Verbose Host",
+    "Cost": "{1}{U}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Izzy",
+    "Link": "Reviewpage-Vnwxt,-Verbose-Host",
+    "": "",
+    "Picture": "Vnwxt__Verbose_Host.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 74,
+    "Name": "Waxen Shapethief",
+    "Cost": "{3}{U}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Helge C. Balzer",
+    "Link": "Reviewpage-Waxen-Shapethief",
+    "": "",
+    "Picture": "Waxen_Shapethief.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 75,
+    "Name": "Ancient Vendetta",
+    "Cost": "{3}{B}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Tianxing Xu",
+    "Link": "Reviewpage-Ancient-Vendetta",
+    "": "",
+    "Picture": "Ancient_Vendetta.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 76,
+    "Name": "Back on Track",
+    "Cost": "{4}{B}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Raoul Vitale",
+    "Link": "Reviewpage-Back-on-Track",
+    "": "",
+    "Picture": "Back_on_Track.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 77,
+    "Name": "Bloodghast",
+    "Cost": "{B}{B}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Francisco Badilla",
+    "Link": "Reviewpage-Bloodghast",
+    "": "",
+    "Picture": "Bloodghast.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 78,
+    "Name": "Carrion Cruiser",
+    "Cost": "{2}{B}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Mathias Kollros",
+    "Link": "Reviewpage-Carrion-Cruiser",
+    "": "",
+    "Picture": "Carrion_Cruiser.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 79,
+    "Name": "Chitin Gravestalker",
+    "Cost": "{5}{B}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Slawomir Maniak",
+    "Link": "Reviewpage-Chitin-Gravestalker",
+    "": "",
+    "Picture": "Chitin_Gravestalker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 80,
+    "Name": "Cryptcaller Chariot",
+    "Cost": "{3}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Aaron Miller",
+    "Link": "Reviewpage-Cryptcaller-Chariot",
+    "": "",
+    "Picture": "Cryptcaller_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 81,
+    "Name": "Cursecloth Wrappings",
+    "Cost": "{2}{B}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Dominik Mayer",
+    "Link": "Reviewpage-Cursecloth-Wrappings",
+    "": "",
+    "Picture": "Cursecloth_Wrappings.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 82,
+    "Name": "Deathless Pilot",
+    "Cost": "{1}{B}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Justin Cornell",
+    "Link": "Reviewpage-Deathless-Pilot",
+    "": "",
+    "Picture": "Deathless_Pilot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 83,
+    "Name": "Demonic Junker",
+    "Cost": "{6}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Stephan Martiniere",
+    "Link": "Reviewpage-Demonic-Junker",
+    "": "",
+    "Picture": "Demonic_Junker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 84,
+    "Name": "Engine Rat",
+    "Cost": "{B}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Camille Alquier",
+    "Link": "Reviewpage-Engine-Rat",
+    "": "",
+    "Picture": "Engine_Rat.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 85,
+    "Name": "Gas Guzzler",
+    "Cost": "{B}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Yohann Schepacz",
+    "Link": "Reviewpage-Gas-Guzzler",
+    "": "",
+    "Picture": "Gas_Guzzler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 86,
+    "Name": "Gastal Raider",
+    "Cost": "{2}{B}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Lorenzo Mastroianni",
+    "Link": "Reviewpage-Gastal-Raider",
+    "": "",
+    "Picture": "Gastal_Raider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 87,
+    "Name": "Gonti, Night Minister",
+    "Cost": "{2}{B}{B}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Scott M. Fischer",
+    "Link": "Reviewpage-Gonti,-Night-Minister",
+    "": "",
+    "Picture": "Gonti__Night_Minister.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 88,
+    "Name": "Grim Bauble",
+    "Cost": "{B}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Wero Gallo",
+    "Link": "Reviewpage-Grim-Bauble",
+    "": "",
+    "Picture": "Grim_Bauble.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 89,
+    "Name": "Grim Javelineer",
+    "Cost": "{2}{B}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Bartek Fedyczak",
+    "Link": "Reviewpage-Grim-Javelineer",
+    "": "",
+    "Picture": "Grim_Javelineer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 90,
+    "Name": "Hellish Sideswipe",
+    "Cost": "{B}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Diana Franco",
+    "Link": "Reviewpage-Hellish-Sideswipe",
+    "": "",
+    "Picture": "Hellish_Sideswipe.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 91,
+    "Name": "Hour of Victory",
+    "Cost": "{2}{B}",
+    "Type": "Enchantment",
+    "R": "U",
+    "Artist": "Aaron Miller",
+    "Link": "Reviewpage-Hour-of-Victory",
+    "": "",
+    "Picture": "Hour_of_Victory.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 92,
+    "Name": "Intimidation Tactics",
+    "Cost": "{B}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Cristi Balanescu",
+    "Link": "Reviewpage-Intimidation-Tactics",
+    "": "",
+    "Picture": "Intimidation_Tactics.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 93,
+    "Name": "Kalakscion, Hunger Tyrant",
+    "Cost": "{1}{B}{B}",
+    "Type": "Lgd. Creature",
+    "R": "U",
+    "Artist": "John Tedrick",
+    "Link": "Reviewpage-Kalakscion,-Hunger-Tyrant",
+    "": "",
+    "Picture": "Kalakscion__Hunger_Tyrant.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 94,
+    "Name": "The Last Ride",
+    "Cost": "{B}",
+    "Type": "Lgd. Artifact",
+    "R": "M",
+    "Artist": "Michele Giorgi",
+    "Link": "Reviewpage-The-Last-Ride",
+    "": "",
+    "Picture": "The_Last_Ride.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 95,
+    "Name": "Locust Spray",
+    "Cost": "{B}",
+    "Type": "Instant",
+    "R": "U",
+    "Artist": "Caio Monteiro",
+    "Link": "Reviewpage-Locust-Spray",
+    "": "",
+    "Picture": "Locust_Spray.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 96,
+    "Name": "Maximum Overdrive",
+    "Cost": "{1}{B}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Javier Charro",
+    "Link": "Reviewpage-Maximum-Overdrive",
+    "": "",
+    "Picture": "Maximum_Overdrive.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 97,
+    "Name": "Momentum Breaker",
+    "Cost": "{1}{B}",
+    "Type": "Enchantment",
+    "R": "U",
+    "Artist": "Dmitry Burmak",
+    "Link": "Reviewpage-Momentum-Breaker",
+    "": "",
+    "Picture": "Momentum_Breaker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 98,
+    "Name": "Mutant Surveyor",
+    "Cost": "{2}{B}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Nicholas Gregory",
+    "Link": "Reviewpage-Mutant-Surveyor",
+    "": "",
+    "Picture": "Mutant_Surveyor.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 99,
+    "Name": "Pactdoll Terror",
+    "Cost": "{3}{B}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "David Astruga",
+    "Link": "Reviewpage-Pactdoll-Terror",
+    "": "",
+    "Picture": "Pactdoll_Terror.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 100,
+    "Name": "Quag Feast",
+    "Cost": "{1}{B}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Loïc Canavaggia",
+    "Link": "Reviewpage-Quag-Feast",
+    "": "",
+    "Picture": "Quag_Feast.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 101,
+    "Name": "Ripclaw Wrangler",
+    "Cost": "{3}{B}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "John Tedrick",
+    "Link": "Reviewpage-Ripclaw-Wrangler",
+    "": "",
+    "Picture": "Ripclaw_Wrangler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 102,
+    "Name": "Risen Necroregent",
+    "Cost": "{4}{B}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Inkognit",
+    "Link": "Reviewpage-Risen-Necroregent",
+    "": "",
+    "Picture": "Risen_Necroregent.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 103,
+    "Name": "Risky Shortcut",
+    "Cost": "{2}{B}",
+    "Type": "Sorcery",
+    "R": "C",
+    "Artist": "Ignatius Budi",
+    "Link": "Reviewpage-Risky-Shortcut",
+    "": "",
+    "Picture": "Risky_Shortcut.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 104,
+    "Name": "Shefet Archfiend",
+    "Cost": "{5}{B}{B}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "GodMachine",
+    "Link": "Reviewpage-Shefet-Archfiend",
+    "": "",
+    "Picture": "Shefet_Archfiend.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 105,
+    "Name": "The Speed Demon",
+    "Cost": "{3}{B}{B}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Helge C. Balzer",
+    "Link": "Reviewpage-The-Speed-Demon",
+    "": "",
+    "Picture": "The_Speed_Demon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 106,
+    "Name": "Spin Out",
+    "Cost": "{1}{B}{B}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Adrián Rodríguez Pérez",
+    "Link": "Reviewpage-Spin-Out",
+    "": "",
+    "Picture": "Spin_Out.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 107,
+    "Name": "Streaking Oilgorger",
+    "Cost": "{4}{B}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Campbell White",
+    "Link": "Reviewpage-Streaking-Oilgorger",
+    "": "",
+    "Picture": "Streaking_Oilgorger.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 108,
+    "Name": "Syphon Fuel",
+    "Cost": "{4}{B}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Mathias Kollros",
+    "Link": "Reviewpage-Syphon-Fuel",
+    "": "",
+    "Picture": "Syphon_Fuel.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 109,
+    "Name": "Wickerfolk Indomitable",
+    "Cost": "{3}{B}",
+    "Type": "Artifact Creature",
+    "R": "U",
+    "Artist": "Sergio Cosmai",
+    "Link": "Reviewpage-Wickerfolk-Indomitable",
+    "": "",
+    "Picture": "Wickerfolk_Indomitable.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 110,
+    "Name": "Wreckage Wickerfolk",
+    "Cost": "{1}{B}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "Johan Grenier",
+    "Link": "Reviewpage-Wreckage-Wickerfolk",
+    "": "",
+    "Picture": "Wreckage_Wickerfolk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 111,
+    "Name": "Wretched Doll",
+    "Cost": "{1}{B}",
+    "Type": "Artifact Creature",
+    "R": "U",
+    "Artist": "Loïc Canavaggia",
+    "Link": "Reviewpage-Wretched-Doll",
+    "": "",
+    "Picture": "Wretched_Doll.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 112,
+    "Name": "Adrenaline Jockey",
+    "Cost": "{2}{R}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Alfonso Santano",
+    "Link": "Reviewpage-Adrenaline-Jockey",
+    "": "",
+    "Picture": "Adrenaline_Jockey.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 113,
+    "Name": "Boommobile",
+    "Cost": "{2}{R}{R}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Alexandr Leskinen",
+    "Link": "Reviewpage-Boommobile",
+    "": "",
+    "Picture": "Boommobile.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 114,
+    "Name": "Burner Rocket",
+    "Cost": "{1}{R}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "José Parodi",
+    "Link": "Reviewpage-Burner-Rocket",
+    "": "",
+    "Picture": "Burner_Rocket.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 115,
+    "Name": "Burnout Bashtronaut",
+    "Cost": "{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Andrea Piparo",
+    "Link": "Reviewpage-Burnout-Bashtronaut",
+    "": "",
+    "Picture": "Burnout_Bashtronaut.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 116,
+    "Name": "Chandra, Spark Hunter",
+    "Cost": "{3}{R}",
+    "Type": "Lgd. Planeswalker",
+    "R": "M",
+    "Artist": "Devin Elle Kurtz",
+    "Link": "Reviewpage-Chandra,-Spark-Hunter",
+    "": "",
+    "Picture": "Chandra__Spark_Hunter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 117,
+    "Name": "Clamorous Ironclad",
+    "Cost": "{3}{R}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Svetlin Velinov",
+    "Link": "Reviewpage-Clamorous-Ironclad",
+    "": "",
+    "Picture": "Clamorous_Ironclad.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 118,
+    "Name": "Count on Luck",
+    "Cost": "{R}{R}{R}",
+    "Type": "Enchantment",
+    "R": "R",
+    "Artist": "Michal Ivan",
+    "Link": "Reviewpage-Count-on-Luck",
+    "": "",
+    "Picture": "Count_on_Luck.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 119,
+    "Name": "Crash and Burn",
+    "Cost": "{3}{R}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Anthony Devine",
+    "Link": "Reviewpage-Crash-and-Burn",
+    "": "",
+    "Picture": "Crash_and_Burn.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 120,
+    "Name": "Daretti, Rocketeer Engineer",
+    "Cost": "{4}{R}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Borja Pindado",
+    "Link": "Reviewpage-Daretti,-Rocketeer-Engineer",
+    "": "",
+    "Picture": "Daretti__Rocketeer_Engineer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 121,
+    "Name": "Draconautics Engineer",
+    "Cost": "{1}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Artur Nakhodkin",
+    "Link": "Reviewpage-Draconautics-Engineer",
+    "": "",
+    "Picture": "Draconautics_Engineer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 122,
+    "Name": "Dracosaur Auxiliary",
+    "Cost": "{4}{R}{R}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Brian Valeza",
+    "Link": "Reviewpage-Dracosaur-Auxiliary",
+    "": "",
+    "Picture": "Dracosaur_Auxiliary.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 123,
+    "Name": "Dynamite Diver",
+    "Cost": "{R}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Pete Venters",
+    "Link": "Reviewpage-Dynamite-Diver",
+    "": "",
+    "Picture": "Dynamite_Diver.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 124,
+    "Name": "Endrider Catalyzer",
+    "Cost": "{1}{R}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Karl Kopinski",
+    "Link": "Reviewpage-Endrider-Catalyzer",
+    "": "",
+    "Picture": "Endrider_Catalyzer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 125,
+    "Name": "Endrider Spikespitter",
+    "Cost": "{3}{R}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Mila Pesic",
+    "Link": "Reviewpage-Endrider-Spikespitter",
+    "": "",
+    "Picture": "Endrider_Spikespitter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 126,
+    "Name": "Fuel the Flames",
+    "Cost": "{2}{R}",
+    "Type": "Instant",
+    "R": "U",
+    "Artist": "Nicholas Gregory",
+    "Link": "Reviewpage-Fuel-the-Flames",
+    "": "",
+    "Picture": "Fuel_the_Flames.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 127,
+    "Name": "Full Throttle",
+    "Cost": "{4}{R}{R}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Benjamin Ee",
+    "Link": "Reviewpage-Full-Throttle",
+    "": "",
+    "Picture": "Full_Throttle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 128,
+    "Name": "Gastal Blockbuster",
+    "Cost": "{2}{R}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Bryan Sola",
+    "Link": "Reviewpage-Gastal-Blockbuster",
+    "": "",
+    "Picture": "Gastal_Blockbuster.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 129,
+    "Name": "Gastal Thrillroller",
+    "Cost": "{2}{R}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Caio Monteiro",
+    "Link": "Reviewpage-Gastal-Thrillroller",
+    "": "",
+    "Picture": "Gastal_Thrillroller.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 130,
+    "Name": "Gilded Ghoda",
+    "Cost": "{1}{R}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Alexandre Honoré",
+    "Link": "Reviewpage-Gilded-Ghoda",
+    "": "",
+    "Picture": "Gilded_Ghoda.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 131,
+    "Name": "Goblin Surveyor",
+    "Cost": "{2}{R}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Pete Venters",
+    "Link": "Reviewpage-Goblin-Surveyor",
+    "": "",
+    "Picture": "Goblin_Surveyor.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 132,
+    "Name": "Greasewrench Goblin",
+    "Cost": "{R}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Alexandre Honoré",
+    "Link": "Reviewpage-Greasewrench-Goblin",
+    "": "",
+    "Picture": "Greasewrench_Goblin.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 133,
+    "Name": "Hazoret, Godseeker",
+    "Cost": "{1}{R}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Chris Rallis",
+    "Link": "Reviewpage-Hazoret,-Godseeker",
+    "": "",
+    "Picture": "Hazoret__Godseeker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 134,
+    "Name": "Howlsquad Heavy",
+    "Cost": "{2}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Leonardo Santanna",
+    "Link": "Reviewpage-Howlsquad-Heavy",
+    "": "",
+    "Picture": "Howlsquad_Heavy.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 135,
+    "Name": "Kickoff Celebrations",
+    "Cost": "{1}{R}",
+    "Type": "Enchantment",
+    "R": "C",
+    "Artist": "Evyn Fong",
+    "Link": "Reviewpage-Kickoff-Celebrations",
+    "": "",
+    "Picture": "Kickoff_Celebrations.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 136,
+    "Name": "Lightning Strike",
+    "Cost": "{1}{R}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Steve Ellis",
+    "Link": "Reviewpage-Lightning-Strike",
+    "": "",
+    "Picture": "Lightning_Strike.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 137,
+    "Name": "Magmakin Artillerist",
+    "Cost": "{2}{R}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Madeline Boni",
+    "Link": "Reviewpage-Magmakin-Artillerist",
+    "": "",
+    "Picture": "Magmakin_Artillerist.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 138,
+    "Name": "Marauding Mako",
+    "Cost": "{R}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Alix Branwyn",
+    "Link": "Reviewpage-Marauding-Mako",
+    "": "",
+    "Picture": "Marauding_Mako.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 139,
+    "Name": "Outpace Oblivion",
+    "Cost": "{2}{R}",
+    "Type": "Enchantment",
+    "R": "U",
+    "Artist": "Raymond Swanland",
+    "Link": "Reviewpage-Outpace-Oblivion",
+    "": "",
+    "Picture": "Outpace_Oblivion.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 140,
+    "Name": "Pacesetter Paragon",
+    "Cost": "{2}{R}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Wonchun Choi",
+    "Link": "Reviewpage-Pacesetter-Paragon",
+    "": "",
+    "Picture": "Pacesetter_Paragon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 141,
+    "Name": "Pedal to the Metal",
+    "Cost": "{X}{R}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Anthony Devine",
+    "Link": "Reviewpage-Pedal-to-the-Metal",
+    "": "",
+    "Picture": "Pedal_to_the_Metal.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 142,
+    "Name": "Prowcatcher Specialist",
+    "Cost": "{1}{R}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Konstantin Porubov",
+    "Link": "Reviewpage-Prowcatcher-Specialist",
+    "": "",
+    "Picture": "Prowcatcher_Specialist.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 143,
+    "Name": "Push the Limit",
+    "Cost": "{5}{R}{R}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Alexander Mokhov",
+    "Link": "Reviewpage-Push-the-Limit",
+    "": "",
+    "Picture": "Push_the_Limit.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 144,
+    "Name": "Reckless Velocitaur",
+    "Cost": "{3}{R}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Inkognit",
+    "Link": "Reviewpage-Reckless-Velocitaur",
+    "": "",
+    "Picture": "Reckless_Velocitaur.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 145,
+    "Name": "Road Rage",
+    "Cost": "{R}",
+    "Type": "Instant",
+    "R": "U",
+    "Artist": "Javier Charro",
+    "Link": "Reviewpage-Road-Rage",
+    "": "",
+    "Picture": "Road_Rage.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 146,
+    "Name": "Skycrash",
+    "Cost": "{1}{R}",
+    "Type": "Instant",
+    "R": "U",
+    "Artist": "Nicholas Gregory",
+    "Link": "Reviewpage-Skycrash",
+    "": "",
+    "Picture": "Skycrash.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 147,
+    "Name": "Spire Mechcycle",
+    "Cost": "{4}{R}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Adam Volker",
+    "Link": "Reviewpage-Spire-Mechcycle",
+    "": "",
+    "Picture": "Spire_Mechcycle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 148,
+    "Name": "Thunderhead Gunner",
+    "Cost": "{4}{R}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Thunderhead-Gunner",
+    "": "",
+    "Picture": "Thunderhead_Gunner.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 149,
+    "Name": "Tyrox, Saurid Tyrant",
+    "Cost": "{1}{R}",
+    "Type": "Lgd. Creature",
+    "R": "U",
+    "Artist": "John Tedrick",
+    "Link": "Reviewpage-Tyrox,-Saurid-Tyrant",
+    "": "",
+    "Picture": "Tyrox__Saurid_Tyrant.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 150,
+    "Name": "Afterburner Expert",
+    "Cost": "{2}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "April Prime",
+    "Link": "Reviewpage-Afterburner-Expert",
+    "": "",
+    "Picture": "Afterburner_Expert.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 151,
+    "Name": "Agonasaur Rex",
+    "Cost": "{3}{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Lucas Graciano",
+    "Link": "Reviewpage-Agonasaur-Rex",
+    "": "",
+    "Picture": "Agonasaur_Rex.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 152,
+    "Name": "Alacrian Jaguar",
+    "Cost": "{4}{G}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Andrey Kuzinskiy",
+    "Link": "Reviewpage-Alacrian-Jaguar",
+    "": "",
+    "Picture": "Alacrian_Jaguar.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 153,
+    "Name": "Autarch Mammoth",
+    "Cost": "{4}{G}{G}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Leonardo Santanna",
+    "Link": "Reviewpage-Autarch-Mammoth",
+    "": "",
+    "Picture": "Autarch_Mammoth.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 154,
+    "Name": "Beastrider Vanguard",
+    "Cost": "{1}{G}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Andrey Kuzinskiy",
+    "Link": "Reviewpage-Beastrider-Vanguard",
+    "": "",
+    "Picture": "Beastrider_Vanguard.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 155,
+    "Name": "Bestow Greatness",
+    "Cost": "{2}{G}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Jeff Carpenter",
+    "Link": "Reviewpage-Bestow-Greatness",
+    "": "",
+    "Picture": "Bestow_Greatness.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 156,
+    "Name": "Broken Wings",
+    "Cost": "{2}{G}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Nils Hamm",
+    "Link": "Reviewpage-Broken-Wings",
+    "": "",
+    "Picture": "Broken_Wings.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 157,
+    "Name": "Defend the Rider",
+    "Cost": "{G}",
+    "Type": "Instant",
+    "R": "U",
+    "Artist": "Raph Lomotan",
+    "Link": "Reviewpage-Defend-the-Rider",
+    "": "",
+    "Picture": "Defend_the_Rider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 158,
+    "Name": "District Mascot",
+    "Cost": "{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Liiga Smilshkalne",
+    "Link": "Reviewpage-District-Mascot",
+    "": "",
+    "Picture": "District_Mascot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 159,
+    "Name": "Dredger's Insight",
+    "Cost": "{1}{G}",
+    "Type": "Enchantment",
+    "R": "U",
+    "Artist": "Bartek Fedyczak",
+    "Link": "Reviewpage-Dredger's-Insight",
+    "": "",
+    "Picture": "Dredger_s_Insight.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 160,
+    "Name": "Earthrumbler",
+    "Cost": "{4}{G}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "J.P. Targete",
+    "Link": "Reviewpage-Earthrumbler",
+    "": "",
+    "Picture": "Earthrumbler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 161,
+    "Name": "Elvish Refueler",
+    "Cost": "{2}{G}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Carly Milligan",
+    "Link": "Reviewpage-Elvish-Refueler",
+    "": "",
+    "Picture": "Elvish_Refueler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 162,
+    "Name": "Fang Guardian",
+    "Cost": "{3}{G}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Jason A. Engle",
+    "Link": "Reviewpage-Fang-Guardian",
+    "": "",
+    "Picture": "Fang_Guardian.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 163,
+    "Name": "Fang-Druid Summoner",
+    "Cost": "{3}{G}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Nino Is",
+    "Link": "Reviewpage-Fang-Druid-Summoner",
+    "": "",
+    "Picture": "Fang_Druid_Summoner.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 164,
+    "Name": "Greenbelt Guardian",
+    "Cost": "{1}{G}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Tianxing Xu",
+    "Link": "Reviewpage-Greenbelt-Guardian",
+    "": "",
+    "Picture": "Greenbelt_Guardian.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 165,
+    "Name": "Hazard of the Dunes",
+    "Cost": "{3}{G}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Brent Hollowell",
+    "Link": "Reviewpage-Hazard-of-the-Dunes",
+    "": "",
+    "Picture": "Hazard_of_the_Dunes.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 166,
+    "Name": "Jibbirik Omnivore",
+    "Cost": "{1}{G}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Jesper Ejsing",
+    "Link": "Reviewpage-Jibbirik-Omnivore",
+    "": "",
+    "Picture": "Jibbirik_Omnivore.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 167,
+    "Name": "Loxodon Surveyor",
+    "Cost": "{2}{G}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "J.P. Targete",
+    "Link": "Reviewpage-Loxodon-Surveyor",
+    "": "",
+    "Picture": "Loxodon_Surveyor.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 168,
+    "Name": "Lumbering Worldwagon",
+    "Cost": "{2}{G}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Raph Lomotan",
+    "Link": "Reviewpage-Lumbering-Worldwagon",
+    "": "",
+    "Picture": "Lumbering_Worldwagon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 169,
+    "Name": "March of the World Ooze",
+    "Cost": "{3}{G}{G}{G}",
+    "Type": "Enchantment",
+    "R": "M",
+    "Artist": "Helge C. Balzer",
+    "Link": "Reviewpage-March-of-the-World-Ooze",
+    "": "",
+    "Picture": "March_of_the_World_Ooze.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 170,
+    "Name": "Migrating Ketradon",
+    "Cost": "{4}{G}{G}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Izzy",
+    "Link": "Reviewpage-Migrating-Ketradon",
+    "": "",
+    "Picture": "Migrating_Ketradon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 171,
+    "Name": "Molt Tender",
+    "Cost": "{G}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Filip Burburan",
+    "Link": "Reviewpage-Molt-Tender",
+    "": "",
+    "Picture": "Molt_Tender.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 172,
+    "Name": "Ooze Patrol",
+    "Cost": "{3}{G}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Forrest Schehl",
+    "Link": "Reviewpage-Ooze-Patrol",
+    "": "",
+    "Picture": "Ooze_Patrol.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 173,
+    "Name": "Oviya, Automech Artisan",
+    "Cost": "{3}{G}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Julia Metzger",
+    "Link": "Reviewpage-Oviya,-Automech-Artisan",
+    "": "",
+    "Picture": "Oviya__Automech_Artisan.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 174,
+    "Name": "Plow Through",
+    "Cost": "{G}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Brian Valeza",
+    "Link": "Reviewpage-Plow-Through",
+    "": "",
+    "Picture": "Plow_Through.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 175,
+    "Name": "Point the Way",
+    "Cost": "{G}",
+    "Type": "Enchantment",
+    "R": "U",
+    "Artist": "Izzy",
+    "Link": "Reviewpage-Point-the-Way",
+    "": "",
+    "Picture": "Point_the_Way.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 176,
+    "Name": "Pothole Mole",
+    "Cost": "{2}{G}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Daren Bader",
+    "Link": "Reviewpage-Pothole-Mole",
+    "": "",
+    "Picture": "Pothole_Mole.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 177,
+    "Name": "Regal Imperiosaur",
+    "Cost": "{1}{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Stephanie Cheung",
+    "Link": "Reviewpage-Regal-Imperiosaur",
+    "": "",
+    "Picture": "Regal_Imperiosaur.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 178,
+    "Name": "Rise from the Wreck",
+    "Cost": "{2}{G}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Nino Is",
+    "Link": "Reviewpage-Rise-from-the-Wreck",
+    "": "",
+    "Picture": "Rise_from_the_Wreck.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 179,
+    "Name": "Run Over",
+    "Cost": "{1}{G}",
+    "Type": "Instant",
+    "R": "C",
+    "Artist": "Tuan Duong Chu",
+    "Link": "Reviewpage-Run-Over",
+    "": "",
+    "Picture": "Run_Over.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 180,
+    "Name": "Silken Strength",
+    "Cost": "{1}{G}",
+    "Type": "Enchantment",
+    "R": "C",
+    "Artist": "Olivier Bernard",
+    "Link": "Reviewpage-Silken-Strength",
+    "": "",
+    "Picture": "Silken_Strength.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 181,
+    "Name": "Stampeding Scurryfoot",
+    "Cost": "{G}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Julia Metzger",
+    "Link": "Reviewpage-Stampeding-Scurryfoot",
+    "": "",
+    "Picture": "Stampeding_Scurryfoot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 182,
+    "Name": "Terrian, World Tyrant",
+    "Cost": "{2}{G}{G}{G}",
+    "Type": "Lgd. Creature",
+    "R": "U",
+    "Artist": "Nicholas Gregory",
+    "Link": "Reviewpage-Terrian,-World-Tyrant",
+    "": "",
+    "Picture": "Terrian__World_Tyrant.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 183,
+    "Name": "Thunderous Velocipede",
+    "Cost": "{1}{G}{G}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Adrián Rodríguez Pérez",
+    "Link": "Reviewpage-Thunderous-Velocipede",
+    "": "",
+    "Picture": "Thunderous_Velocipede.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 184,
+    "Name": "Veloheart Bike",
+    "Cost": "{2}{G}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Anthony Devine",
+    "Link": "Reviewpage-Veloheart-Bike",
+    "": "",
+    "Picture": "Veloheart_Bike.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 185,
+    "Name": "Venomsac Lagac",
+    "Cost": "{1}{G}",
+    "Type": "Creature",
+    "R": "C",
+    "Artist": "Andrey Kuzinskiy",
+    "Link": "Reviewpage-Venomsac-Lagac",
+    "": "",
+    "Picture": "Venomsac_Lagac.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 186,
+    "Name": "Webstrike Elite",
+    "Cost": "{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Andrew Mar",
+    "Link": "Reviewpage-Webstrike-Elite",
+    "": "",
+    "Picture": "Webstrike_Elite.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 187,
+    "Name": "Aatchik, Emerald Radian",
+    "Cost": "{3}{B}{B}{G}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Loïc Canavaggia",
+    "Link": "Reviewpage-Aatchik,-Emerald-Radian",
+    "": "",
+    "Picture": "Aatchik__Emerald_Radian.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 188,
+    "Name": "Apocalypse Runner",
+    "Cost": "{2}{B}{R}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Aaron J. Riley",
+    "Link": "Reviewpage-Apocalypse-Runner",
+    "": "",
+    "Picture": "Apocalypse_Runner.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 189,
+    "Name": "Boom Scholar",
+    "Cost": "{1}{R}{G}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Brian Valeza",
+    "Link": "Reviewpage-Boom-Scholar",
+    "": "",
+    "Picture": "Boom_Scholar.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 190,
+    "Name": "Boosted Sloop",
+    "Cost": "{1}{U}{R}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "José Parodi",
+    "Link": "Reviewpage-Boosted-Sloop",
+    "": "",
+    "Picture": "Boosted_Sloop.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 191,
+    "Name": "Brightglass Gearhulk",
+    "Cost": "{G}{G}{W}{W}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "José Parodi",
+    "Link": "Reviewpage-Brightglass-Gearhulk",
+    "": "",
+    "Picture": "Brightglass_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 192,
+    "Name": "Broadside Barrage",
+    "Cost": "{1}{U}{R}",
+    "Type": "Instant",
+    "R": "U",
+    "Artist": "Javier Charro",
+    "Link": "Reviewpage-Broadside-Barrage",
+    "": "",
+    "Picture": "Broadside_Barrage.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 193,
+    "Name": "Broodheart Engine",
+    "Cost": "{B}{G}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Rémi Jacquot",
+    "Link": "Reviewpage-Broodheart-Engine",
+    "": "",
+    "Picture": "Broodheart_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 194,
+    "Name": "Captain Howler, Sea Scourge",
+    "Cost": "{2}{U}{R}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Captain-Howler,-Sea-Scourge",
+    "": "",
+    "Picture": "Captain_Howler__Sea_Scourge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 195,
+    "Name": "Caradora, Heart of Alacria",
+    "Cost": "{2}{G}{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Caradora,-Heart-of-Alacria",
+    "": "",
+    "Picture": "Caradora__Heart_of_Alacria.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 196,
+    "Name": "Cloudspire Coordinator",
+    "Cost": "{R}{W}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Eduardo Francisco",
+    "Link": "Reviewpage-Cloudspire-Coordinator",
+    "": "",
+    "Picture": "Cloudspire_Coordinator.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 197,
+    "Name": "Cloudspire Skycycle",
+    "Cost": "{2}{R}{W}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Hardy Fowler",
+    "Link": "Reviewpage-Cloudspire-Skycycle",
+    "": "",
+    "Picture": "Cloudspire_Skycycle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 198,
+    "Name": "Coalstoke Gearhulk",
+    "Cost": "{1}{B}{B}{R}{R}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Nino Vecia",
+    "Link": "Reviewpage-Coalstoke-Gearhulk",
+    "": "",
+    "Picture": "Coalstoke_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 199,
+    "Name": "Debris Beetle",
+    "Cost": "{2}{B}{G}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Julie Dillon",
+    "Link": "Reviewpage-Debris-Beetle",
+    "": "",
+    "Picture": "Debris_Beetle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 200,
+    "Name": "Dune Drifter",
+    "Cost": "{X}{W}{B}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Simon Dominic",
+    "Link": "Reviewpage-Dune-Drifter",
+    "": "",
+    "Picture": "Dune_Drifter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 201,
+    "Name": "Embalmed Ascendant",
+    "Cost": "{1}{W}{B}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Edgar Sánchez Hidalgo",
+    "Link": "Reviewpage-Embalmed-Ascendant",
+    "": "",
+    "Picture": "Embalmed_Ascendant.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 202,
+    "Name": "Explosive Getaway",
+    "Cost": "{3}{R}{W}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Caio Monteiro",
+    "Link": "Reviewpage-Explosive-Getaway",
+    "": "",
+    "Picture": "Explosive_Getaway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 203,
+    "Name": "Far Fortune, End Boss",
+    "Cost": "{2}{B}{R}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Javier Charro",
+    "Link": "Reviewpage-Far-Fortune,-End-Boss",
+    "": "",
+    "Picture": "Far_Fortune__End_Boss.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 204,
+    "Name": "Fearless Swashbuckler",
+    "Cost": "{1}{U}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Konstantin Porubov",
+    "Link": "Reviewpage-Fearless-Swashbuckler",
+    "": "",
+    "Picture": "Fearless_Swashbuckler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 205,
+    "Name": "Gastal Thrillseeker",
+    "Cost": "{B}{R}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Olivier Bernard",
+    "Link": "Reviewpage-Gastal-Thrillseeker",
+    "": "",
+    "Picture": "Gastal_Thrillseeker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 206,
+    "Name": "Guidelight Pathmaker",
+    "Cost": "{4}{W}{U}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Stephan Martiniere",
+    "Link": "Reviewpage-Guidelight-Pathmaker",
+    "": "",
+    "Picture": "Guidelight_Pathmaker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 207,
+    "Name": "Haunt the Network",
+    "Cost": "{3}{U}{B}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Jeff Carpenter",
+    "Link": "Reviewpage-Haunt-the-Network",
+    "": "",
+    "Picture": "Haunt_the_Network.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 208,
+    "Name": "Haunted Hellride",
+    "Cost": "{1}{U}{B}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Olivier Bernard",
+    "Link": "Reviewpage-Haunted-Hellride",
+    "": "",
+    "Picture": "Haunted_Hellride.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 209,
+    "Name": "Ketramose, the New Dawn",
+    "Cost": "{1}{W}{B}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Maaz Ali Khan",
+    "Link": "Reviewpage-Ketramose,-the-New-Dawn",
+    "": "",
+    "Picture": "Ketramose__the_New_Dawn.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 210,
+    "Name": "Kolodin, Triumph Caster",
+    "Cost": "{R}{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Michal Ivan",
+    "Link": "Reviewpage-Kolodin,-Triumph-Caster",
+    "": "",
+    "Picture": "Kolodin__Triumph_Caster.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 211,
+    "Name": "Lagorin, Soul of Alacria",
+    "Cost": "{G}{W}",
+    "Type": "Lgd. Creature",
+    "R": "U",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Lagorin,-Soul-of-Alacria",
+    "": "",
+    "Picture": "Lagorin__Soul_of_Alacria.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 212,
+    "Name": "Loot, the Pathfinder",
+    "Cost": "{2}{G}{U}{R}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Ernanda Souza",
+    "Link": "Reviewpage-Loot,-the-Pathfinder",
+    "": "",
+    "Picture": "Loot__the_Pathfinder.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 213,
+    "Name": "Mendicant Core, Guidelight",
+    "Cost": "{W}{U}",
+    "Type": "Lgd. Artifact Creature",
+    "R": "R",
+    "Artist": "Zezhou Chen",
+    "Link": "Reviewpage-Mendicant-Core,-Guidelight",
+    "": "",
+    "Picture": "Mendicant_Core__Guidelight.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 214,
+    "Name": "Mimeoplasm, Revered One",
+    "Cost": "{X}{B}{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Ron Spencer",
+    "Link": "Reviewpage-Mimeoplasm,-Revered-One",
+    "": "",
+    "Picture": "Mimeoplasm__Revered_One.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 215,
+    "Name": "Oildeep Gearhulk",
+    "Cost": "{U}{U}{B}{B}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Artur Nakhodkin",
+    "Link": "Reviewpage-Oildeep-Gearhulk",
+    "": "",
+    "Picture": "Oildeep_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 216,
+    "Name": "Pyrewood Gearhulk",
+    "Cost": "{2}{R}{R}{G}{G}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Martin de Diego Sádaba",
+    "Link": "Reviewpage-Pyrewood-Gearhulk",
+    "": "",
+    "Picture": "Pyrewood_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 217,
+    "Name": "Rangers' Aetherhive",
+    "Cost": "{1}{G}{U}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Josiah \"Jo\" Cameron",
+    "Link": "Reviewpage-Rangers'-Aetherhive",
+    "": "",
+    "Picture": "Rangers__Aetherhive.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 218,
+    "Name": "Redshift, Rocketeer Chief",
+    "Cost": "{R}{G}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Wayne Reynolds",
+    "Link": "Reviewpage-Redshift,-Rocketeer-Chief",
+    "": "",
+    "Picture": "Redshift__Rocketeer_Chief.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 219,
+    "Name": "Riptide Gearhulk",
+    "Cost": "{1}{W}{W}{U}{U}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Artur Nakhodkin",
+    "Link": "Reviewpage-Riptide-Gearhulk",
+    "": "",
+    "Picture": "Riptide_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 220,
+    "Name": "Rocketeer Boostbuggy",
+    "Cost": "{R}{G}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Chris Seaman",
+    "Link": "Reviewpage-Rocketeer-Boostbuggy",
+    "": "",
+    "Picture": "Rocketeer_Boostbuggy.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 221,
+    "Name": "Sab-Sunen, Luxa Embodied",
+    "Cost": "{3}{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Valera Lutfullina",
+    "Link": "Reviewpage-Sab-Sunen,-Luxa-Embodied",
+    "": "",
+    "Picture": "Sab_Sunen__Luxa_Embodied.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 222,
+    "Name": "Samut, the Driving Force",
+    "Cost": "{3}{R}{G}{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Chris Rallis",
+    "Link": "Reviewpage-Samut,-the-Driving-Force",
+    "": "",
+    "Picture": "Samut__the_Driving_Force.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 223,
+    "Name": "Sita Varma, Masked Racer",
+    "Cost": "{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Kai Carpenter",
+    "Link": "Reviewpage-Sita-Varma,-Masked-Racer",
+    "": "",
+    "Picture": "Sita_Varma__Masked_Racer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 224,
+    "Name": "Skyserpent Seeker",
+    "Cost": "{G}{U}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Johan Grenier",
+    "Link": "Reviewpage-Skyserpent-Seeker",
+    "": "",
+    "Picture": "Skyserpent_Seeker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 225,
+    "Name": "Thundering Broodwagon",
+    "Cost": "{2}{B}{B}{G}{G}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Bartek Fedyczak",
+    "Link": "Reviewpage-Thundering-Broodwagon",
+    "": "",
+    "Picture": "Thundering_Broodwagon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 226,
+    "Name": "Veteran Beastrider",
+    "Cost": "{1}{G}{W}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Andreia Ugrai",
+    "Link": "Reviewpage-Veteran-Beastrider",
+    "": "",
+    "Picture": "Veteran_Beastrider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 227,
+    "Name": "Voyage Home",
+    "Cost": "{5}{W}{U}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Hardy Fowler",
+    "Link": "Reviewpage-Voyage-Home",
+    "": "",
+    "Picture": "Voyage_Home.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 228,
+    "Name": "Winter, Cursed Rider",
+    "Cost": "{U}{B}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Daren Bader",
+    "Link": "Reviewpage-Winter,-Cursed-Rider",
+    "": "",
+    "Picture": "Winter__Cursed_Rider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 229,
+    "Name": "Zahur, Glory's Past",
+    "Cost": "{W}{B}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Leroy Steinmann",
+    "Link": "Reviewpage-Zahur,-Glory's-Past",
+    "": "",
+    "Picture": "Zahur__Glory_s_Past.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 230,
+    "Name": "Aetherjacket",
+    "Cost": "{3}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "Domenico Cava",
+    "Link": "Reviewpage-Aetherjacket",
+    "": "",
+    "Picture": "Aetherjacket.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 231,
+    "Name": "The Aetherspark",
+    "Cost": "{4}",
+    "Type": "Lgd. Artifact Planeswalker",
+    "R": "M",
+    "Artist": "Donato Giancola",
+    "Link": "Reviewpage-The-Aetherspark",
+    "": "",
+    "Picture": "The_Aetherspark.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 232,
+    "Name": "Camera Launcher",
+    "Cost": "{3}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "Ben Wootten",
+    "Link": "Reviewpage-Camera-Launcher",
+    "": "",
+    "Picture": "Camera_Launcher.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 233,
+    "Name": "Guidelight Matrix",
+    "Cost": "{2}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Eli Minaya",
+    "Link": "Reviewpage-Guidelight-Matrix",
+    "": "",
+    "Picture": "Guidelight_Matrix.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 234,
+    "Name": "Lifecraft Engine",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Lifecraft-Engine",
+    "": "",
+    "Picture": "Lifecraft_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 235,
+    "Name": "Marketback Walker",
+    "Cost": "{X}{X}",
+    "Type": "Artifact Creature",
+    "R": "R",
+    "Artist": "Svetlin Velinov",
+    "Link": "Reviewpage-Marketback-Walker",
+    "": "",
+    "Picture": "Marketback_Walker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 236,
+    "Name": "Marshals' Pathcruiser",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Javier Charro",
+    "Link": "Reviewpage-Marshals'-Pathcruiser",
+    "": "",
+    "Picture": "Marshals__Pathcruiser.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 237,
+    "Name": "Monument to Endurance",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Victor Sales",
+    "Link": "Reviewpage-Monument-to-Endurance",
+    "": "",
+    "Picture": "Monument_to_Endurance.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 238,
+    "Name": "Pit Automaton",
+    "Cost": "{2}",
+    "Type": "Artifact Creature",
+    "R": "U",
+    "Artist": "Villarrte",
+    "Link": "Reviewpage-Pit-Automaton",
+    "": "",
+    "Picture": "Pit_Automaton.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 239,
+    "Name": "Racers' Scoreboard",
+    "Cost": "{4}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Konstantin Porubov",
+    "Link": "Reviewpage-Racers'-Scoreboard",
+    "": "",
+    "Picture": "Racers__Scoreboard.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 240,
+    "Name": "Radiant Lotus",
+    "Cost": "{6}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Bruce Brenneise",
+    "Link": "Reviewpage-Radiant-Lotus",
+    "": "",
+    "Picture": "Radiant_Lotus.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 241,
+    "Name": "Rover Blades",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Nathaniel Himawan",
+    "Link": "Reviewpage-Rover-Blades",
+    "": "",
+    "Picture": "Rover_Blades.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 242,
+    "Name": "Scrap Compactor",
+    "Cost": "{1}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Viko Menezes",
+    "Link": "Reviewpage-Scrap-Compactor",
+    "": "",
+    "Picture": "Scrap_Compactor.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 243,
+    "Name": "Skybox Ferry",
+    "Cost": "{5}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Borja Pindado",
+    "Link": "Reviewpage-Skybox-Ferry",
+    "": "",
+    "Picture": "Skybox_Ferry.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 244,
+    "Name": "Starting Column",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Jakub Kasper",
+    "Link": "Reviewpage-Starting-Column",
+    "": "",
+    "Picture": "Starting_Column.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 245,
+    "Name": "Ticket Tortoise",
+    "Cost": "{2}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "Brian Valeza",
+    "Link": "Reviewpage-Ticket-Tortoise",
+    "": "",
+    "Picture": "Ticket_Tortoise.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 246,
+    "Name": "Walking Sarcophagus",
+    "Cost": "{2}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "Julia Metzger",
+    "Link": "Reviewpage-Walking-Sarcophagus",
+    "": "",
+    "Picture": "Walking_Sarcophagus.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 247,
+    "Name": "Wreck Remover",
+    "Cost": "{4}",
+    "Type": "Artifact Creature",
+    "R": "C",
+    "Artist": "Villarrte",
+    "Link": "Reviewpage-Wreck-Remover",
+    "": "",
+    "Picture": "Wreck_Remover.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 248,
+    "Name": "Amonkhet Raceway",
+    "Cost": "",
+    "Type": "Land",
+    "R": "U",
+    "Artist": "Brian Valeza",
+    "Link": "Reviewpage-Amonkhet-Raceway",
+    "": "",
+    "Picture": "Amonkhet_Raceway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 249,
+    "Name": "Avishkar Raceway",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Julian Kok Joon Wen",
+    "Link": "Reviewpage-Avishkar-Raceway",
+    "": "",
+    "Picture": "Avishkar_Raceway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 250,
+    "Name": "Bleachbone Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Mark Tedin",
+    "Link": "Reviewpage-Bleachbone-Verge",
+    "": "",
+    "Picture": "Bleachbone_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 251,
+    "Name": "Bloodfell Caves",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Ron Spencer",
+    "Link": "Reviewpage-Bloodfell-Caves",
+    "": "",
+    "Picture": "Bloodfell_Caves.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 252,
+    "Name": "Blossoming Sands",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Valera Lutfullina",
+    "Link": "Reviewpage-Blossoming-Sands",
+    "": "",
+    "Picture": "Blossoming_Sands.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 253,
+    "Name": "Country Roads",
+    "Cost": "",
+    "Type": "Land",
+    "R": "U",
+    "Artist": "Mark Poole",
+    "Link": "Reviewpage-Country-Roads",
+    "": "",
+    "Picture": "Country_Roads.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 254,
+    "Name": "Dismal Backwater",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Sam Burley",
+    "Link": "Reviewpage-Dismal-Backwater",
+    "": "",
+    "Picture": "Dismal_Backwater.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 255,
+    "Name": "Foul Roads",
+    "Cost": "",
+    "Type": "Land",
+    "R": "U",
+    "Artist": "Borja Pindado",
+    "Link": "Reviewpage-Foul-Roads",
+    "": "",
+    "Picture": "Foul_Roads.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 256,
+    "Name": "Jungle Hollow",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Eddie Mendoza",
+    "Link": "Reviewpage-Jungle-Hollow",
+    "": "",
+    "Picture": "Jungle_Hollow.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 257,
+    "Name": "Muraganda Raceway",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Brian Valeza",
+    "Link": "Reviewpage-Muraganda-Raceway",
+    "": "",
+    "Picture": "Muraganda_Raceway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 258,
+    "Name": "Night Market",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "David Álvarez",
+    "Link": "Reviewpage-Night-Market",
+    "": "",
+    "Picture": "Night_Market.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 259,
+    "Name": "Reef Roads",
+    "Cost": "",
+    "Type": "Land",
+    "R": "U",
+    "Artist": "David Álvarez",
+    "Link": "Reviewpage-Reef-Roads",
+    "": "",
+    "Picture": "Reef_Roads.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 260,
+    "Name": "Riverpyre Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Titus Lunter",
+    "Link": "Reviewpage-Riverpyre-Verge",
+    "": "",
+    "Picture": "Riverpyre_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 261,
+    "Name": "Rocky Roads",
+    "Cost": "",
+    "Type": "Land",
+    "R": "U",
+    "Artist": "Arthur Yuan",
+    "Link": "Reviewpage-Rocky-Roads",
+    "": "",
+    "Picture": "Rocky_Roads.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 262,
+    "Name": "Rugged Highlands",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Florian de Gesincourt",
+    "Link": "Reviewpage-Rugged-Highlands",
+    "": "",
+    "Picture": "Rugged_Highlands.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 263,
+    "Name": "Scoured Barrens",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Eddie Mendoza",
+    "Link": "Reviewpage-Scoured-Barrens",
+    "": "",
+    "Picture": "Scoured_Barrens.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 264,
+    "Name": "Sunbillow Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Pete Venters",
+    "Link": "Reviewpage-Sunbillow-Verge",
+    "": "",
+    "Picture": "Sunbillow_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 265,
+    "Name": "Swiftwater Cliffs",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Mark Poole",
+    "Link": "Reviewpage-Swiftwater-Cliffs",
+    "": "",
+    "Picture": "Swiftwater_Cliffs.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 266,
+    "Name": "Thornwood Falls",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Eddie Mendoza",
+    "Link": "Reviewpage-Thornwood-Falls",
+    "": "",
+    "Picture": "Thornwood_Falls.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 267,
+    "Name": "Tranquil Cove",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Wayne Wu",
+    "Link": "Reviewpage-Tranquil-Cove",
+    "": "",
+    "Picture": "Tranquil_Cove.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 268,
+    "Name": "Wastewood Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Bartek Fedyczak",
+    "Link": "Reviewpage-Wastewood-Verge",
+    "": "",
+    "Picture": "Wastewood_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 269,
+    "Name": "Wild Roads",
+    "Cost": "",
+    "Type": "Land",
+    "R": "U",
+    "Artist": "Leanna Crossan",
+    "Link": "Reviewpage-Wild-Roads",
+    "": "",
+    "Picture": "Wild_Roads.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 270,
+    "Name": "Willowrush Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Aaron Miller",
+    "Link": "Reviewpage-Willowrush-Verge",
+    "": "",
+    "Picture": "Willowrush_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 271,
+    "Name": "Wind-Scarred Crag",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Svetlin Velinov",
+    "Link": "Reviewpage-Wind-Scarred-Crag",
+    "": "",
+    "Picture": "Wind_Scarred_Crag.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 272,
+    "Name": "Plains",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Adam Paquette",
+    "Link": "Reviewpage-Plains",
+    "": "",
+    "Picture": "Plains.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 273,
+    "Name": "Island",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Maxime Minard",
+    "Link": "Reviewpage-Island",
+    "": "",
+    "Picture": "Island.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 274,
+    "Name": "Swamp",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Jonas De Ro",
+    "Link": "Reviewpage-Swamp",
+    "": "",
+    "Picture": "Swamp.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 275,
+    "Name": "Mountain",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Chris Ostrowski",
+    "Link": "Reviewpage-Mountain",
+    "": "",
+    "Picture": "Mountain.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 276,
+    "Name": "Forest",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Andreas Rocha",
+    "Link": "Reviewpage-Forest",
+    "": "",
+    "Picture": "Forest.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 277,
+    "Name": "Plains",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Samuele Bandini",
+    "Link": "Reviewpage-Plains",
+    "": "",
+    "Picture": "Plains.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 278,
+    "Name": "Plains",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Titus Lunter",
+    "Link": "Reviewpage-Plains",
+    "": "",
+    "Picture": "Plains.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 279,
+    "Name": "Plains",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Leon Tukker",
+    "Link": "Reviewpage-Plains",
+    "": "",
+    "Picture": "Plains.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 280,
+    "Name": "Island",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Samuele Bandini",
+    "Link": "Reviewpage-Island",
+    "": "",
+    "Picture": "Island.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 281,
+    "Name": "Island",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Mark Poole",
+    "Link": "Reviewpage-Island",
+    "": "",
+    "Picture": "Island.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 282,
+    "Name": "Island",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Leon Tukker",
+    "Link": "Reviewpage-Island",
+    "": "",
+    "Picture": "Island.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 283,
+    "Name": "Swamp",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Samuele Bandini",
+    "Link": "Reviewpage-Swamp",
+    "": "",
+    "Picture": "Swamp.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 284,
+    "Name": "Swamp",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Ron Spencer",
+    "Link": "Reviewpage-Swamp",
+    "": "",
+    "Picture": "Swamp.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 285,
+    "Name": "Swamp",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Leon Tukker",
+    "Link": "Reviewpage-Swamp",
+    "": "",
+    "Picture": "Swamp.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 286,
+    "Name": "Mountain",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Samuele Bandini",
+    "Link": "Reviewpage-Mountain",
+    "": "",
+    "Picture": "Mountain.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 287,
+    "Name": "Mountain",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Florian de Gesincourt",
+    "Link": "Reviewpage-Mountain",
+    "": "",
+    "Picture": "Mountain.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 288,
+    "Name": "Mountain",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Leon Tukker",
+    "Link": "Reviewpage-Mountain",
+    "": "",
+    "Picture": "Mountain.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 289,
+    "Name": "Forest",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Samuele Bandini",
+    "Link": "Reviewpage-Forest",
+    "": "",
+    "Picture": "Forest.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 290,
+    "Name": "Forest",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Yeong-Hao Han",
+    "Link": "Reviewpage-Forest",
+    "": "",
+    "Picture": "Forest.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 291,
+    "Name": "Forest",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Leon Tukker",
+    "Link": "Reviewpage-Forest",
+    "": "",
+    "Picture": "Forest.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 292,
+    "Name": "Air Response Unit",
+    "Cost": "{2}{W}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "SchmandrewART",
+    "Link": "Reviewpage-Air-Response-Unit",
+    "": "",
+    "Picture": "Air_Response_Unit.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 293,
+    "Name": "Broadcast Rambler",
+    "Cost": "{4}{W}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Francisco Badilla",
+    "Link": "Reviewpage-Broadcast-Rambler",
+    "": "",
+    "Picture": "Broadcast_Rambler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 294,
+    "Name": "Detention Chariot",
+    "Cost": "{4}{W}{W}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Arik Roper",
+    "Link": "Reviewpage-Detention-Chariot",
+    "": "",
+    "Picture": "Detention_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 295,
+    "Name": "Salvation Engine",
+    "Cost": "{4}{W}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Adam Volker",
+    "Link": "Reviewpage-Salvation-Engine",
+    "": "",
+    "Picture": "Salvation_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 296,
+    "Name": "Skyseer's Chariot",
+    "Cost": "{1}{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Douglas P. Lobo",
+    "Link": "Reviewpage-Skyseer's-Chariot",
+    "": "",
+    "Picture": "Skyseer_s_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 297,
+    "Name": "Spotcycle Scouter",
+    "Cost": "{1}{W}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Neo.G",
+    "Link": "Reviewpage-Spotcycle-Scouter",
+    "": "",
+    "Picture": "Spotcycle_Scouter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 298,
+    "Name": "Valor's Flagship",
+    "Cost": "{4}{W}{W}{W}",
+    "Type": "Lgd. Artifact",
+    "R": "M",
+    "Artist": "William Tempest",
+    "Link": "Reviewpage-Valor's-Flagship",
+    "": "",
+    "Picture": "Valor_s_Flagship.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 299,
+    "Name": "Voyager Glidecar",
+    "Cost": "{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Andrew Griffith",
+    "Link": "Reviewpage-Voyager-Glidecar",
+    "": "",
+    "Picture": "Voyager_Glidecar.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 300,
+    "Name": "Hulldrifter",
+    "Cost": "{3}{U}{U}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Juan Marquez",
+    "Link": "Reviewpage-Hulldrifter",
+    "": "",
+    "Picture": "Hulldrifter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 301,
+    "Name": "Midnight Mangler",
+    "Cost": "{1}{U}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Boneface",
+    "Link": "Reviewpage-Midnight-Mangler",
+    "": "",
+    "Picture": "Midnight_Mangler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 302,
+    "Name": "Possession Engine",
+    "Cost": "{3}{U}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Douglas P. Lobo",
+    "Link": "Reviewpage-Possession-Engine",
+    "": "",
+    "Picture": "Possession_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 303,
+    "Name": "Rangers' Refueler",
+    "Cost": "{1}{U}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Francisco Badilla",
+    "Link": "Reviewpage-Rangers'-Refueler",
+    "": "",
+    "Picture": "Rangers__Refueler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 304,
+    "Name": "Thopter Fabricator",
+    "Cost": "{2}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "William Tempest",
+    "Link": "Reviewpage-Thopter-Fabricator",
+    "": "",
+    "Picture": "Thopter_Fabricator.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 305,
+    "Name": "Carrion Cruiser",
+    "Cost": "{2}{B}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Ian Jepson",
+    "Link": "Reviewpage-Carrion-Cruiser",
+    "": "",
+    "Picture": "Carrion_Cruiser.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 306,
+    "Name": "Cryptcaller Chariot",
+    "Cost": "{3}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Oliver Barrett",
+    "Link": "Reviewpage-Cryptcaller-Chariot",
+    "": "",
+    "Picture": "Cryptcaller_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 307,
+    "Name": "Demonic Junker",
+    "Cost": "{6}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Death Burger",
+    "Link": "Reviewpage-Demonic-Junker",
+    "": "",
+    "Picture": "Demonic_Junker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 308,
+    "Name": "The Last Ride",
+    "Cost": "{B}",
+    "Type": "Lgd. Artifact",
+    "R": "M",
+    "Artist": "Death Burger",
+    "Link": "Reviewpage-The-Last-Ride",
+    "": "",
+    "Picture": "The_Last_Ride.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 309,
+    "Name": "Ripclaw Wrangler",
+    "Cost": "{3}{B}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Andrew Griffith",
+    "Link": "Reviewpage-Ripclaw-Wrangler",
+    "": "",
+    "Picture": "Ripclaw_Wrangler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 310,
+    "Name": "Boommobile",
+    "Cost": "{2}{R}{R}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Ian Jepson",
+    "Link": "Reviewpage-Boommobile",
+    "": "",
+    "Picture": "Boommobile.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 311,
+    "Name": "Burner Rocket",
+    "Cost": "{1}{R}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Carl Critchlow",
+    "Link": "Reviewpage-Burner-Rocket",
+    "": "",
+    "Picture": "Burner_Rocket.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 312,
+    "Name": "Clamorous Ironclad",
+    "Cost": "{3}{R}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Cosmin Podar",
+    "Link": "Reviewpage-Clamorous-Ironclad",
+    "": "",
+    "Picture": "Clamorous_Ironclad.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 313,
+    "Name": "Gastal Thrillroller",
+    "Cost": "{2}{R}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Dan Mumford",
+    "Link": "Reviewpage-Gastal-Thrillroller",
+    "": "",
+    "Picture": "Gastal_Thrillroller.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 314,
+    "Name": "Spire Mechcycle",
+    "Cost": "{4}{R}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Neo.G",
+    "Link": "Reviewpage-Spire-Mechcycle",
+    "": "",
+    "Picture": "Spire_Mechcycle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 315,
+    "Name": "Earthrumbler",
+    "Cost": "{4}{G}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "SchmandrewART",
+    "Link": "Reviewpage-Earthrumbler",
+    "": "",
+    "Picture": "Earthrumbler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 316,
+    "Name": "Lumbering Worldwagon",
+    "Cost": "{2}{G}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Francisco Badilla",
+    "Link": "Reviewpage-Lumbering-Worldwagon",
+    "": "",
+    "Picture": "Lumbering_Worldwagon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 317,
+    "Name": "Thunderous Velocipede",
+    "Cost": "{1}{G}{G}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Eduardo Francisco",
+    "Link": "Reviewpage-Thunderous-Velocipede",
+    "": "",
+    "Picture": "Thunderous_Velocipede.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 318,
+    "Name": "Veloheart Bike",
+    "Cost": "{2}{G}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "Juan Marquez",
+    "Link": "Reviewpage-Veloheart-Bike",
+    "": "",
+    "Picture": "Veloheart_Bike.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 319,
+    "Name": "Apocalypse Runner",
+    "Cost": "{2}{B}{R}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Arik Roper",
+    "Link": "Reviewpage-Apocalypse-Runner",
+    "": "",
+    "Picture": "Apocalypse_Runner.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 320,
+    "Name": "Boosted Sloop",
+    "Cost": "{1}{U}{R}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Gabriel Rubio",
+    "Link": "Reviewpage-Boosted-Sloop",
+    "": "",
+    "Picture": "Boosted_Sloop.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 321,
+    "Name": "Cloudspire Skycycle",
+    "Cost": "{2}{R}{W}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Yuko Shimizu",
+    "Link": "Reviewpage-Cloudspire-Skycycle",
+    "": "",
+    "Picture": "Cloudspire_Skycycle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 322,
+    "Name": "Debris Beetle",
+    "Cost": "{2}{B}{G}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Michal Ivan",
+    "Link": "Reviewpage-Debris-Beetle",
+    "": "",
+    "Picture": "Debris_Beetle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 323,
+    "Name": "Dune Drifter",
+    "Cost": "{X}{W}{B}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Arik Roper",
+    "Link": "Reviewpage-Dune-Drifter",
+    "": "",
+    "Picture": "Dune_Drifter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 324,
+    "Name": "Guidelight Pathmaker",
+    "Cost": "{4}{W}{U}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Dan Mumford",
+    "Link": "Reviewpage-Guidelight-Pathmaker",
+    "": "",
+    "Picture": "Guidelight_Pathmaker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 325,
+    "Name": "Haunted Hellride",
+    "Cost": "{1}{U}{B}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Death Burger",
+    "Link": "Reviewpage-Haunted-Hellride",
+    "": "",
+    "Picture": "Haunted_Hellride.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 326,
+    "Name": "Rangers' Aetherhive",
+    "Cost": "{1}{G}{U}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Francisco Badilla",
+    "Link": "Reviewpage-Rangers'-Aetherhive",
+    "": "",
+    "Picture": "Rangers__Aetherhive.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 327,
+    "Name": "Rocketeer Boostbuggy",
+    "Cost": "{R}{G}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Adam Volker",
+    "Link": "Reviewpage-Rocketeer-Boostbuggy",
+    "": "",
+    "Picture": "Rocketeer_Boostbuggy.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 328,
+    "Name": "Thundering Broodwagon",
+    "Cost": "{2}{B}{B}{G}{G}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Villarrte",
+    "Link": "Reviewpage-Thundering-Broodwagon",
+    "": "",
+    "Picture": "Thundering_Broodwagon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 329,
+    "Name": "Lifecraft Engine",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Eduardo Francisco",
+    "Link": "Reviewpage-Lifecraft-Engine",
+    "": "",
+    "Picture": "Lifecraft_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 330,
+    "Name": "Marshals' Pathcruiser",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Michal Ivan",
+    "Link": "Reviewpage-Marshals'-Pathcruiser",
+    "": "",
+    "Picture": "Marshals__Pathcruiser.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 331,
+    "Name": "Rover Blades",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "U",
+    "Artist": "Eduardo Francisco",
+    "Link": "Reviewpage-Rover-Blades",
+    "": "",
+    "Picture": "Rover_Blades.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 332,
+    "Name": "Skybox Ferry",
+    "Cost": "{5}",
+    "Type": "Artifact",
+    "R": "C",
+    "Artist": "SchmandrewART",
+    "Link": "Reviewpage-Skybox-Ferry",
+    "": "",
+    "Picture": "Skybox_Ferry.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 333,
+    "Name": "Bulwark Ox",
+    "Cost": "{1}{W}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Jon Vermilyea",
+    "Link": "Reviewpage-Bulwark-Ox",
+    "": "",
+    "Picture": "Bulwark_Ox.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 334,
+    "Name": "Guardian Sunmare",
+    "Cost": "{3}{W}{W}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Wojtek Łebski",
+    "Link": "Reviewpage-Guardian-Sunmare",
+    "": "",
+    "Picture": "Guardian_Sunmare.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 335,
+    "Name": "Mindspring Merfolk",
+    "Cost": "{U}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "CatDirty",
+    "Link": "Reviewpage-Mindspring-Merfolk",
+    "": "",
+    "Picture": "Mindspring_Merfolk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 336,
+    "Name": "Waxen Shapethief",
+    "Cost": "{3}{U}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "CatDirty",
+    "Link": "Reviewpage-Waxen-Shapethief",
+    "": "",
+    "Picture": "Waxen_Shapethief.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 337,
+    "Name": "Bloodghast",
+    "Cost": "{B}{B}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Wojtek Łebski",
+    "Link": "Reviewpage-Bloodghast",
+    "": "",
+    "Picture": "Bloodghast.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 338,
+    "Name": "Gas Guzzler",
+    "Cost": "{B}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Sam McKenzie",
+    "Link": "Reviewpage-Gas-Guzzler",
+    "": "",
+    "Picture": "Gas_Guzzler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 339,
+    "Name": "The Speed Demon",
+    "Cost": "{3}{B}{B}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "CatDirty",
+    "Link": "Reviewpage-The-Speed-Demon",
+    "": "",
+    "Picture": "The_Speed_Demon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 340,
+    "Name": "Burnout Bashtronaut",
+    "Cost": "{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Jon Vermilyea",
+    "Link": "Reviewpage-Burnout-Bashtronaut",
+    "": "",
+    "Picture": "Burnout_Bashtronaut.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 341,
+    "Name": "Draconautics Engineer",
+    "Cost": "{1}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Ryan Roadkill",
+    "Link": "Reviewpage-Draconautics-Engineer",
+    "": "",
+    "Picture": "Draconautics_Engineer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 342,
+    "Name": "Howlsquad Heavy",
+    "Cost": "{2}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Ryan Roadkill",
+    "Link": "Reviewpage-Howlsquad-Heavy",
+    "": "",
+    "Picture": "Howlsquad_Heavy.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 343,
+    "Name": "Agonasaur Rex",
+    "Cost": "{3}{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Jon Vermilyea",
+    "Link": "Reviewpage-Agonasaur-Rex",
+    "": "",
+    "Picture": "Agonasaur_Rex.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 344,
+    "Name": "District Mascot",
+    "Cost": "{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Ryan Roadkill",
+    "Link": "Reviewpage-District-Mascot",
+    "": "",
+    "Picture": "District_Mascot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 345,
+    "Name": "Webstrike Elite",
+    "Cost": "{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Sam McKenzie",
+    "Link": "Reviewpage-Webstrike-Elite",
+    "": "",
+    "Picture": "Webstrike_Elite.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 346,
+    "Name": "Fearless Swashbuckler",
+    "Cost": "{1}{U}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "CatDirty",
+    "Link": "Reviewpage-Fearless-Swashbuckler",
+    "": "",
+    "Picture": "Fearless_Swashbuckler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 347,
+    "Name": "Hazoret, Godseeker",
+    "Cost": "{1}{R}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Massiveface",
+    "Link": "Reviewpage-Hazoret,-Godseeker",
+    "": "",
+    "Picture": "Hazoret__Godseeker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 348,
+    "Name": "Brightglass Gearhulk",
+    "Cost": "{G}{G}{W}{W}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Jorge Gutierrez Garcia",
+    "Link": "Reviewpage-Brightglass-Gearhulk",
+    "": "",
+    "Picture": "Brightglass_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 349,
+    "Name": "Coalstoke Gearhulk",
+    "Cost": "{1}{B}{B}{R}{R}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Ivan Shavrin",
+    "Link": "Reviewpage-Coalstoke-Gearhulk",
+    "": "",
+    "Picture": "Coalstoke_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 350,
+    "Name": "Ketramose, the New Dawn",
+    "Cost": "{1}{W}{B}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Florian Bertmer",
+    "Link": "Reviewpage-Ketramose,-the-New-Dawn",
+    "": "",
+    "Picture": "Ketramose__the_New_Dawn.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 351,
+    "Name": "Oildeep Gearhulk",
+    "Cost": "{U}{U}{B}{B}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Chun Lo",
+    "Link": "Reviewpage-Oildeep-Gearhulk",
+    "": "",
+    "Picture": "Oildeep_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 352,
+    "Name": "Pyrewood Gearhulk",
+    "Cost": "{2}{R}{R}{G}{G}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "William Tempest",
+    "Link": "Reviewpage-Pyrewood-Gearhulk",
+    "": "",
+    "Picture": "Pyrewood_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 353,
+    "Name": "Riptide Gearhulk",
+    "Cost": "{1}{W}{W}{U}{U}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Kudaman",
+    "Link": "Reviewpage-Riptide-Gearhulk",
+    "": "",
+    "Picture": "Riptide_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 354,
+    "Name": "Sab-Sunen, Luxa Embodied",
+    "Cost": "{3}{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Benjamin Ee",
+    "Link": "Reviewpage-Sab-Sunen,-Luxa-Embodied",
+    "": "",
+    "Picture": "Sab_Sunen__Luxa_Embodied.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 355,
+    "Name": "Basri, Tomorrow's Champion",
+    "Cost": "{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Justyna Dura",
+    "Link": "Reviewpage-Basri,-Tomorrow's-Champion",
+    "": "",
+    "Picture": "Basri__Tomorrow_s_Champion.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 356,
+    "Name": "Vnwxt, Verbose Host",
+    "Cost": "{1}{U}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Chris Seaman",
+    "Link": "Reviewpage-Vnwxt,-Verbose-Host",
+    "": "",
+    "Picture": "Vnwxt__Verbose_Host.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 357,
+    "Name": "Gonti, Night Minister",
+    "Cost": "{2}{B}{B}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Richard Kane Ferguson",
+    "Link": "Reviewpage-Gonti,-Night-Minister",
+    "": "",
+    "Picture": "Gonti__Night_Minister.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 358,
+    "Name": "Daretti, Rocketeer Engineer",
+    "Cost": "{4}{R}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Samuel Perin",
+    "Link": "Reviewpage-Daretti,-Rocketeer-Engineer",
+    "": "",
+    "Picture": "Daretti__Rocketeer_Engineer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 359,
+    "Name": "Oviya, Automech Artisan",
+    "Cost": "{3}{G}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Ron Spears",
+    "Link": "Reviewpage-Oviya,-Automech-Artisan",
+    "": "",
+    "Picture": "Oviya__Automech_Artisan.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 360,
+    "Name": "Aatchik, Emerald Radian",
+    "Cost": "{3}{B}{B}{G}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Erica Williams",
+    "Link": "Reviewpage-Aatchik,-Emerald-Radian",
+    "": "",
+    "Picture": "Aatchik__Emerald_Radian.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 361,
+    "Name": "Captain Howler, Sea Scourge",
+    "Cost": "{2}{U}{R}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Mark Zug",
+    "Link": "Reviewpage-Captain-Howler,-Sea-Scourge",
+    "": "",
+    "Picture": "Captain_Howler__Sea_Scourge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 362,
+    "Name": "Caradora, Heart of Alacria",
+    "Cost": "{2}{G}{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Yuko Shimizu",
+    "Link": "Reviewpage-Caradora,-Heart-of-Alacria",
+    "": "",
+    "Picture": "Caradora__Heart_of_Alacria.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 363,
+    "Name": "Far Fortune, End Boss",
+    "Cost": "{2}{B}{R}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Justine Jones",
+    "Link": "Reviewpage-Far-Fortune,-End-Boss",
+    "": "",
+    "Picture": "Far_Fortune__End_Boss.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 364,
+    "Name": "Kolodin, Triumph Caster",
+    "Cost": "{R}{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "John Stanko",
+    "Link": "Reviewpage-Kolodin,-Triumph-Caster",
+    "": "",
+    "Picture": "Kolodin__Triumph_Caster.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 365,
+    "Name": "Mendicant Core, Guidelight",
+    "Cost": "{W}{U}",
+    "Type": "Lgd. Artifact Creature",
+    "R": "R",
+    "Artist": "Dan Mumford",
+    "Link": "Reviewpage-Mendicant-Core,-Guidelight",
+    "": "",
+    "Picture": "Mendicant_Core__Guidelight.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 366,
+    "Name": "Redshift, Rocketeer Chief",
+    "Cost": "{R}{G}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Xavier Ribeiro",
+    "Link": "Reviewpage-Redshift,-Rocketeer-Chief",
+    "": "",
+    "Picture": "Redshift__Rocketeer_Chief.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 367,
+    "Name": "Samut, the Driving Force",
+    "Cost": "{3}{R}{G}{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Mark Poole",
+    "Link": "Reviewpage-Samut,-the-Driving-Force",
+    "": "",
+    "Picture": "Samut__the_Driving_Force.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 368,
+    "Name": "Sita Varma, Masked Racer",
+    "Cost": "{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "rk post",
+    "Link": "Reviewpage-Sita-Varma,-Masked-Racer",
+    "": "",
+    "Picture": "Sita_Varma__Masked_Racer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 369,
+    "Name": "Winter, Cursed Rider",
+    "Cost": "{U}{B}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Ovidio Cartagena",
+    "Link": "Reviewpage-Winter,-Cursed-Rider",
+    "": "",
+    "Picture": "Winter__Cursed_Rider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 370,
+    "Name": "Zahur, Glory's Past",
+    "Cost": "{W}{B}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Alex Stone",
+    "Link": "Reviewpage-Zahur,-Glory's-Past",
+    "": "",
+    "Picture": "Zahur__Glory_s_Past.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 371,
+    "Name": "Bleachbone Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Daren Bader",
+    "Link": "Reviewpage-Bleachbone-Verge",
+    "": "",
+    "Picture": "Bleachbone_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 372,
+    "Name": "Riverpyre Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Justin Sweet",
+    "Link": "Reviewpage-Riverpyre-Verge",
+    "": "",
+    "Picture": "Riverpyre_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 373,
+    "Name": "Sunbillow Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Darrell Riche",
+    "Link": "Reviewpage-Sunbillow-Verge",
+    "": "",
+    "Picture": "Sunbillow_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 374,
+    "Name": "Wastewood Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Kev Walker",
+    "Link": "Reviewpage-Wastewood-Verge",
+    "": "",
+    "Picture": "Wastewood_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 375,
+    "Name": "Willowrush Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Carl Critchlow",
+    "Link": "Reviewpage-Willowrush-Verge",
+    "": "",
+    "Picture": "Willowrush_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 376,
+    "Name": "The Aetherspark",
+    "Cost": "{4}",
+    "Type": "Lgd. Artifact Planeswalker",
+    "R": "M",
+    "Artist": "Dominik Mayer",
+    "Link": "Reviewpage-The-Aetherspark",
+    "": "",
+    "Picture": "The_Aetherspark.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 377,
+    "Name": "Perilous Snare",
+    "Cost": "{2}{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Chris Seaman",
+    "Link": "Reviewpage-Perilous-Snare",
+    "": "",
+    "Picture": "Perilous_Snare.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 378,
+    "Name": "Spectacular Pileup",
+    "Cost": "{3}{W}{W}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Zezhou Chen",
+    "Link": "Reviewpage-Spectacular-Pileup",
+    "": "",
+    "Picture": "Spectacular_Pileup.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 379,
+    "Name": "Mu Yanling, Wind Rider",
+    "Cost": "{2}{U}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Justyna Dura",
+    "Link": "Reviewpage-Mu-Yanling,-Wind-Rider",
+    "": "",
+    "Picture": "Mu_Yanling__Wind_Rider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 380,
+    "Name": "Repurposing Bay",
+    "Cost": "{2}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "William Tempest",
+    "Link": "Reviewpage-Repurposing-Bay",
+    "": "",
+    "Picture": "Repurposing_Bay.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 381,
+    "Name": "Riverchurn Monument",
+    "Cost": "{1}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Anthony Devine",
+    "Link": "Reviewpage-Riverchurn-Monument",
+    "": "",
+    "Picture": "Riverchurn_Monument.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 382,
+    "Name": "Unstoppable Plan",
+    "Cost": "{2}{U}",
+    "Type": "Enchantment",
+    "R": "R",
+    "Artist": "Borja Pindado",
+    "Link": "Reviewpage-Unstoppable-Plan",
+    "": "",
+    "Picture": "Unstoppable_Plan.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 383,
+    "Name": "Cursecloth Wrappings",
+    "Cost": "{2}{B}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Dominik Mayer",
+    "Link": "Reviewpage-Cursecloth-Wrappings",
+    "": "",
+    "Picture": "Cursecloth_Wrappings.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 384,
+    "Name": "Quag Feast",
+    "Cost": "{1}{B}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Loïc Canavaggia",
+    "Link": "Reviewpage-Quag-Feast",
+    "": "",
+    "Picture": "Quag_Feast.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 385,
+    "Name": "Count on Luck",
+    "Cost": "{R}{R}{R}",
+    "Type": "Enchantment",
+    "R": "R",
+    "Artist": "Michal Ivan",
+    "Link": "Reviewpage-Count-on-Luck",
+    "": "",
+    "Picture": "Count_on_Luck.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 386,
+    "Name": "Full Throttle",
+    "Cost": "{4}{R}{R}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Benjamin Ee",
+    "Link": "Reviewpage-Full-Throttle",
+    "": "",
+    "Picture": "Full_Throttle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 387,
+    "Name": "Afterburner Expert",
+    "Cost": "{2}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "April Prime",
+    "Link": "Reviewpage-Afterburner-Expert",
+    "": "",
+    "Picture": "Afterburner_Expert.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 388,
+    "Name": "March of the World Ooze",
+    "Cost": "{3}{G}{G}{G}",
+    "Type": "Enchantment",
+    "R": "M",
+    "Artist": "Helge C. Balzer",
+    "Link": "Reviewpage-March-of-the-World-Ooze",
+    "": "",
+    "Picture": "March_of_the_World_Ooze.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 389,
+    "Name": "Regal Imperiosaur",
+    "Cost": "{1}{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Stephanie Cheung",
+    "Link": "Reviewpage-Regal-Imperiosaur",
+    "": "",
+    "Picture": "Regal_Imperiosaur.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 390,
+    "Name": "Explosive Getaway",
+    "Cost": "{3}{R}{W}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Caio Monteiro",
+    "Link": "Reviewpage-Explosive-Getaway",
+    "": "",
+    "Picture": "Explosive_Getaway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 391,
+    "Name": "Loot, the Pathfinder",
+    "Cost": "{2}{G}{U}{R}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Ernanda Souza",
+    "Link": "Reviewpage-Loot,-the-Pathfinder",
+    "": "",
+    "Picture": "Loot__the_Pathfinder.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 392,
+    "Name": "Mimeoplasm, Revered One",
+    "Cost": "{X}{B}{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Ron Spencer",
+    "Link": "Reviewpage-Mimeoplasm,-Revered-One",
+    "": "",
+    "Picture": "Mimeoplasm__Revered_One.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 393,
+    "Name": "Marketback Walker",
+    "Cost": "{X}{X}",
+    "Type": "Artifact Creature",
+    "R": "R",
+    "Artist": "Svetlin Velinov",
+    "Link": "Reviewpage-Marketback-Walker",
+    "": "",
+    "Picture": "Marketback_Walker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 394,
+    "Name": "Monument to Endurance",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Victor Sales",
+    "Link": "Reviewpage-Monument-to-Endurance",
+    "": "",
+    "Picture": "Monument_to_Endurance.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 395,
+    "Name": "Radiant Lotus",
+    "Cost": "{6}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Bruce Brenneise",
+    "Link": "Reviewpage-Radiant-Lotus",
+    "": "",
+    "Picture": "Radiant_Lotus.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 396,
+    "Name": "Muraganda Raceway",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Brian Valeza",
+    "Link": "Reviewpage-Muraganda-Raceway",
+    "": "",
+    "Picture": "Muraganda_Raceway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 397,
+    "Name": "Salvation Engine",
+    "Cost": "{4}{W}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Mai Minamiura",
+    "Link": "Reviewpage-Salvation-Engine",
+    "": "",
+    "Picture": "Salvation_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 398,
+    "Name": "Spectacular Pileup",
+    "Cost": "{3}{W}{W}",
+    "Type": "Sorcery",
+    "R": "M",
+    "Artist": "JIN-E YAMAMOTO",
+    "Link": "Reviewpage-Spectacular-Pileup",
+    "": "",
+    "Picture": "Spectacular_Pileup.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 399,
+    "Name": "Mu Yanling, Wind Rider",
+    "Cost": "{2}{U}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "D-suzuki",
+    "Link": "Reviewpage-Mu-Yanling,-Wind-Rider",
+    "": "",
+    "Picture": "Mu_Yanling__Wind_Rider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 400,
+    "Name": "Cursecloth Wrappings",
+    "Cost": "{2}{B}{B}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "BARON UEDA",
+    "Link": "Reviewpage-Cursecloth-Wrappings",
+    "": "",
+    "Picture": "Cursecloth_Wrappings.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 401,
+    "Name": "Chandra, Spark Hunter",
+    "Cost": "{3}{R}",
+    "Type": "Lgd. Planeswalker",
+    "R": "M",
+    "Artist": "jbstyle.",
+    "Link": "Reviewpage-Chandra,-Spark-Hunter",
+    "": "",
+    "Picture": "Chandra__Spark_Hunter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 402,
+    "Name": "March of the World Ooze",
+    "Cost": "{3}{G}{G}{G}",
+    "Type": "Enchantment",
+    "R": "M",
+    "Artist": "Raimaru",
+    "Link": "Reviewpage-March-of-the-World-Ooze",
+    "": "",
+    "Picture": "March_of_the_World_Ooze.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 403,
+    "Name": "Explosive Getaway",
+    "Cost": "{3}{R}{W}",
+    "Type": "Sorcery",
+    "R": "M",
+    "Artist": "TSCR",
+    "Link": "Reviewpage-Explosive-Getaway",
+    "": "",
+    "Picture": "Explosive_Getaway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 404,
+    "Name": "Loot, the Pathfinder",
+    "Cost": "{2}{G}{U}{R}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Tetsu Kurosawa",
+    "Link": "Reviewpage-Loot,-the-Pathfinder",
+    "": "",
+    "Picture": "Loot__the_Pathfinder.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 405,
+    "Name": "Mimeoplasm, Revered One",
+    "Cost": "{X}{B}{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "SH11NA",
+    "Link": "Reviewpage-Mimeoplasm,-Revered-One",
+    "": "",
+    "Picture": "Mimeoplasm__Revered_One.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 406,
+    "Name": "Radiant Lotus",
+    "Cost": "{6}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Tomoyuki Mizufune",
+    "Link": "Reviewpage-Radiant-Lotus",
+    "": "",
+    "Picture": "Radiant_Lotus.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 407,
+    "Name": "Salvation Engine",
+    "Cost": "{4}{W}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Mai Minamiura",
+    "Link": "Reviewpage-Salvation-Engine",
+    "": "",
+    "Picture": "Salvation_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 408,
+    "Name": "Spectacular Pileup",
+    "Cost": "{3}{W}{W}",
+    "Type": "Sorcery",
+    "R": "M",
+    "Artist": "JIN-E YAMAMOTO",
+    "Link": "Reviewpage-Spectacular-Pileup",
+    "": "",
+    "Picture": "Spectacular_Pileup.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 409,
+    "Name": "Mu Yanling, Wind Rider",
+    "Cost": "{2}{U}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "D-suzuki",
+    "Link": "Reviewpage-Mu-Yanling,-Wind-Rider",
+    "": "",
+    "Picture": "Mu_Yanling__Wind_Rider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 410,
+    "Name": "Cursecloth Wrappings",
+    "Cost": "{2}{B}{B}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "BARON UEDA",
+    "Link": "Reviewpage-Cursecloth-Wrappings",
+    "": "",
+    "Picture": "Cursecloth_Wrappings.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 411,
+    "Name": "Chandra, Spark Hunter",
+    "Cost": "{3}{R}",
+    "Type": "Lgd. Planeswalker",
+    "R": "M",
+    "Artist": "jbstyle.",
+    "Link": "Reviewpage-Chandra,-Spark-Hunter",
+    "": "",
+    "Picture": "Chandra__Spark_Hunter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 412,
+    "Name": "March of the World Ooze",
+    "Cost": "{3}{G}{G}{G}",
+    "Type": "Enchantment",
+    "R": "M",
+    "Artist": "Raimaru",
+    "Link": "Reviewpage-March-of-the-World-Ooze",
+    "": "",
+    "Picture": "March_of_the_World_Ooze.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 413,
+    "Name": "Explosive Getaway",
+    "Cost": "{3}{R}{W}",
+    "Type": "Sorcery",
+    "R": "M",
+    "Artist": "TSCR",
+    "Link": "Reviewpage-Explosive-Getaway",
+    "": "",
+    "Picture": "Explosive_Getaway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 414,
+    "Name": "Loot, the Pathfinder",
+    "Cost": "{2}{G}{U}{R}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Tetsu Kurosawa",
+    "Link": "Reviewpage-Loot,-the-Pathfinder",
+    "": "",
+    "Picture": "Loot__the_Pathfinder.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 415,
+    "Name": "Mimeoplasm, Revered One",
+    "Cost": "{X}{B}{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "SH11NA",
+    "Link": "Reviewpage-Mimeoplasm,-Revered-One",
+    "": "",
+    "Picture": "Mimeoplasm__Revered_One.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 416,
+    "Name": "Radiant Lotus",
+    "Cost": "{6}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Tomoyuki Mizufune",
+    "Link": "Reviewpage-Radiant-Lotus",
+    "": "",
+    "Picture": "Radiant_Lotus.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 417,
+    "Name": "Tune Up",
+    "Cost": "{3}{W}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Chris Rallis",
+    "Link": "Reviewpage-Tune-Up",
+    "": "",
+    "Picture": "Tune_Up.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 418,
+    "Name": "Gastal Raider",
+    "Cost": "{2}{B}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Lorenzo Mastroianni",
+    "Link": "Reviewpage-Gastal-Raider",
+    "": "",
+    "Picture": "Gastal_Raider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 419,
+    "Name": "Marauding Mako",
+    "Cost": "{R}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Alix Branwyn",
+    "Link": "Reviewpage-Marauding-Mako",
+    "": "",
+    "Picture": "Marauding_Mako.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 420,
+    "Name": "Skyserpent Seeker",
+    "Cost": "{G}{U}",
+    "Type": "Creature",
+    "R": "U",
+    "Artist": "Johan Grenier",
+    "Link": "Reviewpage-Skyserpent-Seeker",
+    "": "",
+    "Picture": "Skyserpent_Seeker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 421,
+    "Name": "Voyage Home",
+    "Cost": "{5}{W}{U}",
+    "Type": "Sorcery",
+    "R": "U",
+    "Artist": "Hardy Fowler",
+    "Link": "Reviewpage-Voyage-Home",
+    "": "",
+    "Picture": "Voyage_Home.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 422,
+    "Name": "Lumbering Worldwagon",
+    "Cost": "{2}{G}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Adam Volker",
+    "Link": "Reviewpage-Lumbering-Worldwagon",
+    "": "",
+    "Picture": "Lumbering_Worldwagon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 423,
+    "Name": "Lifecraft Engine",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "José Parodi",
+    "Link": "Reviewpage-Lifecraft-Engine",
+    "": "",
+    "Picture": "Lifecraft_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 424,
+    "Name": "Amonkhet Raceway",
+    "Cost": "",
+    "Type": "Land",
+    "R": "U",
+    "Artist": "Titus Lunter",
+    "Link": "Reviewpage-Amonkhet-Raceway",
+    "": "",
+    "Picture": "Amonkhet_Raceway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 425,
+    "Name": "Avishkar Raceway",
+    "Cost": "",
+    "Type": "Land",
+    "R": "C",
+    "Artist": "Titus Lunter",
+    "Link": "Reviewpage-Avishkar-Raceway",
+    "": "",
+    "Picture": "Avishkar_Raceway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 426,
+    "Name": "Muraganda Raceway",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Titus Lunter",
+    "Link": "Reviewpage-Muraganda-Raceway",
+    "": "",
+    "Picture": "Muraganda_Raceway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 427,
+    "Name": "Basri, Tomorrow's Champion",
+    "Cost": "{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Kai Carpenter",
+    "Link": "Reviewpage-Basri,-Tomorrow's-Champion",
+    "": "",
+    "Picture": "Basri__Tomorrow_s_Champion.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 428,
+    "Name": "Bulwark Ox",
+    "Cost": "{1}{W}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Brent Hollowell",
+    "Link": "Reviewpage-Bulwark-Ox",
+    "": "",
+    "Picture": "Bulwark_Ox.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 429,
+    "Name": "Guardian Sunmare",
+    "Cost": "{3}{W}{W}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Christina Kraus",
+    "Link": "Reviewpage-Guardian-Sunmare",
+    "": "",
+    "Picture": "Guardian_Sunmare.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 430,
+    "Name": "Perilous Snare",
+    "Cost": "{2}{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Chris Seaman",
+    "Link": "Reviewpage-Perilous-Snare",
+    "": "",
+    "Picture": "Perilous_Snare.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 431,
+    "Name": "Salvation Engine",
+    "Cost": "{4}{W}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Ben Wootten",
+    "Link": "Reviewpage-Salvation-Engine",
+    "": "",
+    "Picture": "Salvation_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 432,
+    "Name": "Skyseer's Chariot",
+    "Cost": "{1}{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Carl Critchlow",
+    "Link": "Reviewpage-Skyseer's-Chariot",
+    "": "",
+    "Picture": "Skyseer_s_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 433,
+    "Name": "Spectacular Pileup",
+    "Cost": "{3}{W}{W}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Zezhou Chen",
+    "Link": "Reviewpage-Spectacular-Pileup",
+    "": "",
+    "Picture": "Spectacular_Pileup.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 434,
+    "Name": "Valor's Flagship",
+    "Cost": "{4}{W}{W}{W}",
+    "Type": "Lgd. Artifact",
+    "R": "M",
+    "Artist": "Stephan Martiniere",
+    "Link": "Reviewpage-Valor's-Flagship",
+    "": "",
+    "Picture": "Valor_s_Flagship.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 435,
+    "Name": "Voyager Glidecar",
+    "Cost": "{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Eduardo Francisco",
+    "Link": "Reviewpage-Voyager-Glidecar",
+    "": "",
+    "Picture": "Voyager_Glidecar.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 436,
+    "Name": "Mindspring Merfolk",
+    "Cost": "{U}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Andreia Ugrai",
+    "Link": "Reviewpage-Mindspring-Merfolk",
+    "": "",
+    "Picture": "Mindspring_Merfolk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 437,
+    "Name": "Mu Yanling, Wind Rider",
+    "Cost": "{2}{U}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Justyna Dura",
+    "Link": "Reviewpage-Mu-Yanling,-Wind-Rider",
+    "": "",
+    "Picture": "Mu_Yanling__Wind_Rider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 438,
+    "Name": "Possession Engine",
+    "Cost": "{3}{U}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Leroy Steinmann",
+    "Link": "Reviewpage-Possession-Engine",
+    "": "",
+    "Picture": "Possession_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 439,
+    "Name": "Repurposing Bay",
+    "Cost": "{2}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "William Tempest",
+    "Link": "Reviewpage-Repurposing-Bay",
+    "": "",
+    "Picture": "Repurposing_Bay.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 440,
+    "Name": "Riverchurn Monument",
+    "Cost": "{1}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Anthony Devine",
+    "Link": "Reviewpage-Riverchurn-Monument",
+    "": "",
+    "Picture": "Riverchurn_Monument.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 441,
+    "Name": "Thopter Fabricator",
+    "Cost": "{2}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Racrufi",
+    "Link": "Reviewpage-Thopter-Fabricator",
+    "": "",
+    "Picture": "Thopter_Fabricator.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 442,
+    "Name": "Unstoppable Plan",
+    "Cost": "{2}{U}",
+    "Type": "Enchantment",
+    "R": "R",
+    "Artist": "Borja Pindado",
+    "Link": "Reviewpage-Unstoppable-Plan",
+    "": "",
+    "Picture": "Unstoppable_Plan.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 443,
+    "Name": "Vnwxt, Verbose Host",
+    "Cost": "{1}{U}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Izzy",
+    "Link": "Reviewpage-Vnwxt,-Verbose-Host",
+    "": "",
+    "Picture": "Vnwxt__Verbose_Host.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 444,
+    "Name": "Waxen Shapethief",
+    "Cost": "{3}{U}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Helge C. Balzer",
+    "Link": "Reviewpage-Waxen-Shapethief",
+    "": "",
+    "Picture": "Waxen_Shapethief.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 445,
+    "Name": "Bloodghast",
+    "Cost": "{B}{B}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Francisco Badilla",
+    "Link": "Reviewpage-Bloodghast",
+    "": "",
+    "Picture": "Bloodghast.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 446,
+    "Name": "Cryptcaller Chariot",
+    "Cost": "{3}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Aaron Miller",
+    "Link": "Reviewpage-Cryptcaller-Chariot",
+    "": "",
+    "Picture": "Cryptcaller_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 447,
+    "Name": "Cursecloth Wrappings",
+    "Cost": "{2}{B}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Dominik Mayer",
+    "Link": "Reviewpage-Cursecloth-Wrappings",
+    "": "",
+    "Picture": "Cursecloth_Wrappings.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 448,
+    "Name": "Demonic Junker",
+    "Cost": "{6}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Stephan Martiniere",
+    "Link": "Reviewpage-Demonic-Junker",
+    "": "",
+    "Picture": "Demonic_Junker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 449,
+    "Name": "Gas Guzzler",
+    "Cost": "{B}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Yohann Schepacz",
+    "Link": "Reviewpage-Gas-Guzzler",
+    "": "",
+    "Picture": "Gas_Guzzler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 450,
+    "Name": "Gonti, Night Minister",
+    "Cost": "{2}{B}{B}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Scott M. Fischer",
+    "Link": "Reviewpage-Gonti,-Night-Minister",
+    "": "",
+    "Picture": "Gonti__Night_Minister.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 451,
+    "Name": "The Last Ride",
+    "Cost": "{B}",
+    "Type": "Lgd. Artifact",
+    "R": "M",
+    "Artist": "Michele Giorgi",
+    "Link": "Reviewpage-The-Last-Ride",
+    "": "",
+    "Picture": "The_Last_Ride.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 452,
+    "Name": "Quag Feast",
+    "Cost": "{1}{B}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Loïc Canavaggia",
+    "Link": "Reviewpage-Quag-Feast",
+    "": "",
+    "Picture": "Quag_Feast.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 453,
+    "Name": "The Speed Demon",
+    "Cost": "{3}{B}{B}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Helge C. Balzer",
+    "Link": "Reviewpage-The-Speed-Demon",
+    "": "",
+    "Picture": "The_Speed_Demon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 454,
+    "Name": "Boommobile",
+    "Cost": "{2}{R}{R}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Alexandr Leskinen",
+    "Link": "Reviewpage-Boommobile",
+    "": "",
+    "Picture": "Boommobile.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 455,
+    "Name": "Burnout Bashtronaut",
+    "Cost": "{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Andrea Piparo",
+    "Link": "Reviewpage-Burnout-Bashtronaut",
+    "": "",
+    "Picture": "Burnout_Bashtronaut.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 456,
+    "Name": "Chandra, Spark Hunter",
+    "Cost": "{3}{R}",
+    "Type": "Lgd. Planeswalker",
+    "R": "M",
+    "Artist": "Devin Elle Kurtz",
+    "Link": "Reviewpage-Chandra,-Spark-Hunter",
+    "": "",
+    "Picture": "Chandra__Spark_Hunter.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 457,
+    "Name": "Count on Luck",
+    "Cost": "{R}{R}{R}",
+    "Type": "Enchantment",
+    "R": "R",
+    "Artist": "Michal Ivan",
+    "Link": "Reviewpage-Count-on-Luck",
+    "": "",
+    "Picture": "Count_on_Luck.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 458,
+    "Name": "Daretti, Rocketeer Engineer",
+    "Cost": "{4}{R}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Borja Pindado",
+    "Link": "Reviewpage-Daretti,-Rocketeer-Engineer",
+    "": "",
+    "Picture": "Daretti__Rocketeer_Engineer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 459,
+    "Name": "Draconautics Engineer",
+    "Cost": "{1}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Artur Nakhodkin",
+    "Link": "Reviewpage-Draconautics-Engineer",
+    "": "",
+    "Picture": "Draconautics_Engineer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 460,
+    "Name": "Full Throttle",
+    "Cost": "{4}{R}{R}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Benjamin Ee",
+    "Link": "Reviewpage-Full-Throttle",
+    "": "",
+    "Picture": "Full_Throttle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 461,
+    "Name": "Gastal Thrillroller",
+    "Cost": "{2}{R}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Caio Monteiro",
+    "Link": "Reviewpage-Gastal-Thrillroller",
+    "": "",
+    "Picture": "Gastal_Thrillroller.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 462,
+    "Name": "Hazoret, Godseeker",
+    "Cost": "{1}{R}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Chris Rallis",
+    "Link": "Reviewpage-Hazoret,-Godseeker",
+    "": "",
+    "Picture": "Hazoret__Godseeker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 463,
+    "Name": "Howlsquad Heavy",
+    "Cost": "{2}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Leonardo Santanna",
+    "Link": "Reviewpage-Howlsquad-Heavy",
+    "": "",
+    "Picture": "Howlsquad_Heavy.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 464,
+    "Name": "Afterburner Expert",
+    "Cost": "{2}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "April Prime",
+    "Link": "Reviewpage-Afterburner-Expert",
+    "": "",
+    "Picture": "Afterburner_Expert.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 465,
+    "Name": "Agonasaur Rex",
+    "Cost": "{3}{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Lucas Graciano",
+    "Link": "Reviewpage-Agonasaur-Rex",
+    "": "",
+    "Picture": "Agonasaur_Rex.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 466,
+    "Name": "District Mascot",
+    "Cost": "{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Liiga Smilshkalne",
+    "Link": "Reviewpage-District-Mascot",
+    "": "",
+    "Picture": "District_Mascot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 467,
+    "Name": "Lumbering Worldwagon",
+    "Cost": "{2}{G}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Raph Lomotan",
+    "Link": "Reviewpage-Lumbering-Worldwagon",
+    "": "",
+    "Picture": "Lumbering_Worldwagon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 468,
+    "Name": "March of the World Ooze",
+    "Cost": "{3}{G}{G}{G}",
+    "Type": "Enchantment",
+    "R": "M",
+    "Artist": "Helge C. Balzer",
+    "Link": "Reviewpage-March-of-the-World-Ooze",
+    "": "",
+    "Picture": "March_of_the_World_Ooze.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 469,
+    "Name": "Oviya, Automech Artisan",
+    "Cost": "{3}{G}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Julia Metzger",
+    "Link": "Reviewpage-Oviya,-Automech-Artisan",
+    "": "",
+    "Picture": "Oviya__Automech_Artisan.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 470,
+    "Name": "Regal Imperiosaur",
+    "Cost": "{1}{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Stephanie Cheung",
+    "Link": "Reviewpage-Regal-Imperiosaur",
+    "": "",
+    "Picture": "Regal_Imperiosaur.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 471,
+    "Name": "Thunderous Velocipede",
+    "Cost": "{1}{G}{G}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Adrián Rodríguez Pérez",
+    "Link": "Reviewpage-Thunderous-Velocipede",
+    "": "",
+    "Picture": "Thunderous_Velocipede.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 472,
+    "Name": "Webstrike Elite",
+    "Cost": "{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Andrew Mar",
+    "Link": "Reviewpage-Webstrike-Elite",
+    "": "",
+    "Picture": "Webstrike_Elite.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 473,
+    "Name": "Aatchik, Emerald Radian",
+    "Cost": "{3}{B}{B}{G}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Loïc Canavaggia",
+    "Link": "Reviewpage-Aatchik,-Emerald-Radian",
+    "": "",
+    "Picture": "Aatchik__Emerald_Radian.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 474,
+    "Name": "Brightglass Gearhulk",
+    "Cost": "{G}{G}{W}{W}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "José Parodi",
+    "Link": "Reviewpage-Brightglass-Gearhulk",
+    "": "",
+    "Picture": "Brightglass_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 475,
+    "Name": "Captain Howler, Sea Scourge",
+    "Cost": "{2}{U}{R}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Captain-Howler,-Sea-Scourge",
+    "": "",
+    "Picture": "Captain_Howler__Sea_Scourge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 476,
+    "Name": "Caradora, Heart of Alacria",
+    "Cost": "{2}{G}{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Caradora,-Heart-of-Alacria",
+    "": "",
+    "Picture": "Caradora__Heart_of_Alacria.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 477,
+    "Name": "Coalstoke Gearhulk",
+    "Cost": "{1}{B}{B}{R}{R}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Nino Vecia",
+    "Link": "Reviewpage-Coalstoke-Gearhulk",
+    "": "",
+    "Picture": "Coalstoke_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 478,
+    "Name": "Debris Beetle",
+    "Cost": "{2}{B}{G}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Julie Dillon",
+    "Link": "Reviewpage-Debris-Beetle",
+    "": "",
+    "Picture": "Debris_Beetle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 479,
+    "Name": "Explosive Getaway",
+    "Cost": "{3}{R}{W}",
+    "Type": "Sorcery",
+    "R": "R",
+    "Artist": "Caio Monteiro",
+    "Link": "Reviewpage-Explosive-Getaway",
+    "": "",
+    "Picture": "Explosive_Getaway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 480,
+    "Name": "Far Fortune, End Boss",
+    "Cost": "{2}{B}{R}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Javier Charro",
+    "Link": "Reviewpage-Far-Fortune,-End-Boss",
+    "": "",
+    "Picture": "Far_Fortune__End_Boss.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 481,
+    "Name": "Fearless Swashbuckler",
+    "Cost": "{1}{U}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Konstantin Porubov",
+    "Link": "Reviewpage-Fearless-Swashbuckler",
+    "": "",
+    "Picture": "Fearless_Swashbuckler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 482,
+    "Name": "Ketramose, the New Dawn",
+    "Cost": "{1}{W}{B}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Maaz Ali Khan",
+    "Link": "Reviewpage-Ketramose,-the-New-Dawn",
+    "": "",
+    "Picture": "Ketramose__the_New_Dawn.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 483,
+    "Name": "Kolodin, Triumph Caster",
+    "Cost": "{R}{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Michal Ivan",
+    "Link": "Reviewpage-Kolodin,-Triumph-Caster",
+    "": "",
+    "Picture": "Kolodin__Triumph_Caster.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 484,
+    "Name": "Loot, the Pathfinder",
+    "Cost": "{2}{G}{U}{R}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Ernanda Souza",
+    "Link": "Reviewpage-Loot,-the-Pathfinder",
+    "": "",
+    "Picture": "Loot__the_Pathfinder.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 485,
+    "Name": "Mendicant Core, Guidelight",
+    "Cost": "{W}{U}",
+    "Type": "Lgd. Artifact Creature",
+    "R": "R",
+    "Artist": "Zezhou Chen",
+    "Link": "Reviewpage-Mendicant-Core,-Guidelight",
+    "": "",
+    "Picture": "Mendicant_Core__Guidelight.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 486,
+    "Name": "Mimeoplasm, Revered One",
+    "Cost": "{X}{B}{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Ron Spencer",
+    "Link": "Reviewpage-Mimeoplasm,-Revered-One",
+    "": "",
+    "Picture": "Mimeoplasm__Revered_One.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 487,
+    "Name": "Oildeep Gearhulk",
+    "Cost": "{U}{U}{B}{B}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Artur Nakhodkin",
+    "Link": "Reviewpage-Oildeep-Gearhulk",
+    "": "",
+    "Picture": "Oildeep_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 488,
+    "Name": "Pyrewood Gearhulk",
+    "Cost": "{2}{R}{R}{G}{G}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Martin de Diego Sádaba",
+    "Link": "Reviewpage-Pyrewood-Gearhulk",
+    "": "",
+    "Picture": "Pyrewood_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 489,
+    "Name": "Redshift, Rocketeer Chief",
+    "Cost": "{R}{G}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Wayne Reynolds",
+    "Link": "Reviewpage-Redshift,-Rocketeer-Chief",
+    "": "",
+    "Picture": "Redshift__Rocketeer_Chief.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 490,
+    "Name": "Riptide Gearhulk",
+    "Cost": "{1}{W}{W}{U}{U}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Artur Nakhodkin",
+    "Link": "Reviewpage-Riptide-Gearhulk",
+    "": "",
+    "Picture": "Riptide_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 491,
+    "Name": "Sab-Sunen, Luxa Embodied",
+    "Cost": "{3}{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Valera Lutfullina",
+    "Link": "Reviewpage-Sab-Sunen,-Luxa-Embodied",
+    "": "",
+    "Picture": "Sab_Sunen__Luxa_Embodied.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 492,
+    "Name": "Samut, the Driving Force",
+    "Cost": "{3}{R}{G}{W}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Chris Rallis",
+    "Link": "Reviewpage-Samut,-the-Driving-Force",
+    "": "",
+    "Picture": "Samut__the_Driving_Force.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 493,
+    "Name": "Sita Varma, Masked Racer",
+    "Cost": "{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Kai Carpenter",
+    "Link": "Reviewpage-Sita-Varma,-Masked-Racer",
+    "": "",
+    "Picture": "Sita_Varma__Masked_Racer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 494,
+    "Name": "Winter, Cursed Rider",
+    "Cost": "{U}{B}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Daren Bader",
+    "Link": "Reviewpage-Winter,-Cursed-Rider",
+    "": "",
+    "Picture": "Winter__Cursed_Rider.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 495,
+    "Name": "Zahur, Glory's Past",
+    "Cost": "{W}{B}",
+    "Type": "Lgd. Creature",
+    "R": "R",
+    "Artist": "Leroy Steinmann",
+    "Link": "Reviewpage-Zahur,-Glory's-Past",
+    "": "",
+    "Picture": "Zahur__Glory_s_Past.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 496,
+    "Name": "The Aetherspark",
+    "Cost": "{4}",
+    "Type": "Lgd. Artifact Planeswalker",
+    "R": "M",
+    "Artist": "Donato Giancola",
+    "Link": "Reviewpage-The-Aetherspark",
+    "": "",
+    "Picture": "The_Aetherspark.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 497,
+    "Name": "Lifecraft Engine",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Mirko Failoni",
+    "Link": "Reviewpage-Lifecraft-Engine",
+    "": "",
+    "Picture": "Lifecraft_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 498,
+    "Name": "Marketback Walker",
+    "Cost": "{X}{X}",
+    "Type": "Artifact Creature",
+    "R": "R",
+    "Artist": "Svetlin Velinov",
+    "Link": "Reviewpage-Marketback-Walker",
+    "": "",
+    "Picture": "Marketback_Walker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 499,
+    "Name": "Monument to Endurance",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Victor Sales",
+    "Link": "Reviewpage-Monument-to-Endurance",
+    "": "",
+    "Picture": "Monument_to_Endurance.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 500,
+    "Name": "Radiant Lotus",
+    "Cost": "{6}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Bruce Brenneise",
+    "Link": "Reviewpage-Radiant-Lotus",
+    "": "",
+    "Picture": "Radiant_Lotus.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 501,
+    "Name": "Bleachbone Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Mark Tedin",
+    "Link": "Reviewpage-Bleachbone-Verge",
+    "": "",
+    "Picture": "Bleachbone_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 502,
+    "Name": "Muraganda Raceway",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Brian Valeza",
+    "Link": "Reviewpage-Muraganda-Raceway",
+    "": "",
+    "Picture": "Muraganda_Raceway.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 503,
+    "Name": "Riverpyre Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Titus Lunter",
+    "Link": "Reviewpage-Riverpyre-Verge",
+    "": "",
+    "Picture": "Riverpyre_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 504,
+    "Name": "Sunbillow Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Pete Venters",
+    "Link": "Reviewpage-Sunbillow-Verge",
+    "": "",
+    "Picture": "Sunbillow_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 505,
+    "Name": "Wastewood Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Bartek Fedyczak",
+    "Link": "Reviewpage-Wastewood-Verge",
+    "": "",
+    "Picture": "Wastewood_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 506,
+    "Name": "Willowrush Verge",
+    "Cost": "",
+    "Type": "Land",
+    "R": "R",
+    "Artist": "Aaron Miller",
+    "Link": "Reviewpage-Willowrush-Verge",
+    "": "",
+    "Picture": "Willowrush_Verge.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 507,
+    "Name": "Plains",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Adam Paquette",
+    "Link": "Reviewpage-Plains",
+    "": "",
+    "Picture": "Plains.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 508,
+    "Name": "Island",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Maxime Minard",
+    "Link": "Reviewpage-Island",
+    "": "",
+    "Picture": "Island.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 509,
+    "Name": "Swamp",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Jonas De Ro",
+    "Link": "Reviewpage-Swamp",
+    "": "",
+    "Picture": "Swamp.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 510,
+    "Name": "Mountain",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Chris Ostrowski",
+    "Link": "Reviewpage-Mountain",
+    "": "",
+    "Picture": "Mountain.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 511,
+    "Name": "Forest",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Andreas Rocha",
+    "Link": "Reviewpage-Forest",
+    "": "",
+    "Picture": "Forest.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 512,
+    "Name": "Plains",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Calder Moore",
+    "Link": "Reviewpage-Plains",
+    "": "",
+    "Picture": "Plains.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 513,
+    "Name": "Island",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Calder Moore",
+    "Link": "Reviewpage-Island",
+    "": "",
+    "Picture": "Island.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 514,
+    "Name": "Swamp",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Calder Moore",
+    "Link": "Reviewpage-Swamp",
+    "": "",
+    "Picture": "Swamp.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 515,
+    "Name": "Mountain",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Calder Moore",
+    "Link": "Reviewpage-Mountain",
+    "": "",
+    "Picture": "Mountain.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 516,
+    "Name": "Forest",
+    "Cost": "",
+    "Type": "Basic Land",
+    "R": "C",
+    "Artist": "Calder Moore",
+    "Link": "Reviewpage-Forest",
+    "": "",
+    "Picture": "Forest.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 517,
+    "Name": "Salvation Engine",
+    "Cost": "{4}{W}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Adam Volker",
+    "Link": "Reviewpage-Salvation-Engine",
+    "": "",
+    "Picture": "Salvation_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 518,
+    "Name": "Skyseer's Chariot",
+    "Cost": "{1}{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Douglas P. Lobo",
+    "Link": "Reviewpage-Skyseer's-Chariot",
+    "": "",
+    "Picture": "Skyseer_s_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 519,
+    "Name": "Valor's Flagship",
+    "Cost": "{4}{W}{W}{W}",
+    "Type": "Lgd. Artifact",
+    "R": "M",
+    "Artist": "William Tempest",
+    "Link": "Reviewpage-Valor's-Flagship",
+    "": "",
+    "Picture": "Valor_s_Flagship.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 520,
+    "Name": "Voyager Glidecar",
+    "Cost": "{W}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Andrew Griffith",
+    "Link": "Reviewpage-Voyager-Glidecar",
+    "": "",
+    "Picture": "Voyager_Glidecar.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 521,
+    "Name": "Possession Engine",
+    "Cost": "{3}{U}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Douglas P. Lobo",
+    "Link": "Reviewpage-Possession-Engine",
+    "": "",
+    "Picture": "Possession_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 522,
+    "Name": "Thopter Fabricator",
+    "Cost": "{2}{U}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "William Tempest",
+    "Link": "Reviewpage-Thopter-Fabricator",
+    "": "",
+    "Picture": "Thopter_Fabricator.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 523,
+    "Name": "Cryptcaller Chariot",
+    "Cost": "{3}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Oliver Barrett",
+    "Link": "Reviewpage-Cryptcaller-Chariot",
+    "": "",
+    "Picture": "Cryptcaller_Chariot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 524,
+    "Name": "Demonic Junker",
+    "Cost": "{6}{B}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Death Burger",
+    "Link": "Reviewpage-Demonic-Junker",
+    "": "",
+    "Picture": "Demonic_Junker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 525,
+    "Name": "The Last Ride",
+    "Cost": "{B}",
+    "Type": "Lgd. Artifact",
+    "R": "M",
+    "Artist": "Death Burger",
+    "Link": "Reviewpage-The-Last-Ride",
+    "": "",
+    "Picture": "The_Last_Ride.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 526,
+    "Name": "Boommobile",
+    "Cost": "{2}{R}{R}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Ian Jepson",
+    "Link": "Reviewpage-Boommobile",
+    "": "",
+    "Picture": "Boommobile.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 527,
+    "Name": "Gastal Thrillroller",
+    "Cost": "{2}{R}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Dan Mumford",
+    "Link": "Reviewpage-Gastal-Thrillroller",
+    "": "",
+    "Picture": "Gastal_Thrillroller.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 528,
+    "Name": "Lumbering Worldwagon",
+    "Cost": "{2}{G}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Francisco Badilla",
+    "Link": "Reviewpage-Lumbering-Worldwagon",
+    "": "",
+    "Picture": "Lumbering_Worldwagon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 529,
+    "Name": "Thunderous Velocipede",
+    "Cost": "{1}{G}{G}",
+    "Type": "Artifact",
+    "R": "M",
+    "Artist": "Eduardo Francisco",
+    "Link": "Reviewpage-Thunderous-Velocipede",
+    "": "",
+    "Picture": "Thunderous_Velocipede.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 530,
+    "Name": "Debris Beetle",
+    "Cost": "{2}{B}{G}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Michal Ivan",
+    "Link": "Reviewpage-Debris-Beetle",
+    "": "",
+    "Picture": "Debris_Beetle.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 531,
+    "Name": "Lifecraft Engine",
+    "Cost": "{3}",
+    "Type": "Artifact",
+    "R": "R",
+    "Artist": "Eduardo Francisco",
+    "Link": "Reviewpage-Lifecraft-Engine",
+    "": "",
+    "Picture": "Lifecraft_Engine.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 532,
+    "Name": "Bulwark Ox",
+    "Cost": "{1}{W}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Jon Vermilyea",
+    "Link": "Reviewpage-Bulwark-Ox",
+    "": "",
+    "Picture": "Bulwark_Ox.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 533,
+    "Name": "Guardian Sunmare",
+    "Cost": "{3}{W}{W}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Wojtek Łebski",
+    "Link": "Reviewpage-Guardian-Sunmare",
+    "": "",
+    "Picture": "Guardian_Sunmare.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 534,
+    "Name": "Mindspring Merfolk",
+    "Cost": "{U}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "CatDirty",
+    "Link": "Reviewpage-Mindspring-Merfolk",
+    "": "",
+    "Picture": "Mindspring_Merfolk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 535,
+    "Name": "Waxen Shapethief",
+    "Cost": "{3}{U}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "CatDirty",
+    "Link": "Reviewpage-Waxen-Shapethief",
+    "": "",
+    "Picture": "Waxen_Shapethief.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 536,
+    "Name": "Bloodghast",
+    "Cost": "{B}{B}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Wojtek Łebski",
+    "Link": "Reviewpage-Bloodghast",
+    "": "",
+    "Picture": "Bloodghast.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 537,
+    "Name": "Gas Guzzler",
+    "Cost": "{B}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Sam McKenzie",
+    "Link": "Reviewpage-Gas-Guzzler",
+    "": "",
+    "Picture": "Gas_Guzzler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 538,
+    "Name": "The Speed Demon",
+    "Cost": "{3}{B}{B}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "CatDirty",
+    "Link": "Reviewpage-The-Speed-Demon",
+    "": "",
+    "Picture": "The_Speed_Demon.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 539,
+    "Name": "Burnout Bashtronaut",
+    "Cost": "{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Jon Vermilyea",
+    "Link": "Reviewpage-Burnout-Bashtronaut",
+    "": "",
+    "Picture": "Burnout_Bashtronaut.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 540,
+    "Name": "Draconautics Engineer",
+    "Cost": "{1}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Ryan Roadkill",
+    "Link": "Reviewpage-Draconautics-Engineer",
+    "": "",
+    "Picture": "Draconautics_Engineer.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 541,
+    "Name": "Howlsquad Heavy",
+    "Cost": "{2}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Ryan Roadkill",
+    "Link": "Reviewpage-Howlsquad-Heavy",
+    "": "",
+    "Picture": "Howlsquad_Heavy.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 542,
+    "Name": "Agonasaur Rex",
+    "Cost": "{3}{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Jon Vermilyea",
+    "Link": "Reviewpage-Agonasaur-Rex",
+    "": "",
+    "Picture": "Agonasaur_Rex.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 543,
+    "Name": "District Mascot",
+    "Cost": "{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Ryan Roadkill",
+    "Link": "Reviewpage-District-Mascot",
+    "": "",
+    "Picture": "District_Mascot.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 544,
+    "Name": "Webstrike Elite",
+    "Cost": "{G}{G}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "Sam McKenzie",
+    "Link": "Reviewpage-Webstrike-Elite",
+    "": "",
+    "Picture": "Webstrike_Elite.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 545,
+    "Name": "Fearless Swashbuckler",
+    "Cost": "{1}{U}{R}",
+    "Type": "Creature",
+    "R": "R",
+    "Artist": "CatDirty",
+    "Link": "Reviewpage-Fearless-Swashbuckler",
+    "": "",
+    "Picture": "Fearless_Swashbuckler.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 546,
+    "Name": "Hazoret, Godseeker",
+    "Cost": "{1}{R}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Massiveface",
+    "Link": "Reviewpage-Hazoret,-Godseeker",
+    "": "",
+    "Picture": "Hazoret__Godseeker.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 547,
+    "Name": "Brightglass Gearhulk",
+    "Cost": "{G}{G}{W}{W}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Jorge Gutierrez Garcia",
+    "Link": "Reviewpage-Brightglass-Gearhulk",
+    "": "",
+    "Picture": "Brightglass_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 548,
+    "Name": "Coalstoke Gearhulk",
+    "Cost": "{1}{B}{B}{R}{R}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Ivan Shavrin",
+    "Link": "Reviewpage-Coalstoke-Gearhulk",
+    "": "",
+    "Picture": "Coalstoke_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 549,
+    "Name": "Ketramose, the New Dawn",
+    "Cost": "{1}{W}{B}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Florian Bertmer",
+    "Link": "Reviewpage-Ketramose,-the-New-Dawn",
+    "": "",
+    "Picture": "Ketramose__the_New_Dawn.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 550,
+    "Name": "Oildeep Gearhulk",
+    "Cost": "{U}{U}{B}{B}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Chun Lo",
+    "Link": "Reviewpage-Oildeep-Gearhulk",
+    "": "",
+    "Picture": "Oildeep_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 551,
+    "Name": "Pyrewood Gearhulk",
+    "Cost": "{2}{R}{R}{G}{G}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "William Tempest",
+    "Link": "Reviewpage-Pyrewood-Gearhulk",
+    "": "",
+    "Picture": "Pyrewood_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 552,
+    "Name": "Riptide Gearhulk",
+    "Cost": "{1}{W}{W}{U}{U}",
+    "Type": "Artifact Creature",
+    "R": "M",
+    "Artist": "Kudaman",
+    "Link": "Reviewpage-Riptide-Gearhulk",
+    "": "",
+    "Picture": "Riptide_Gearhulk.png"
+  },
+  {
+    "Set": "DFT",
+    "Number": 553,
+    "Name": "Sab-Sunen, Luxa Embodied",
+    "Cost": "{3}{G}{U}",
+    "Type": "Lgd. Creature",
+    "R": "M",
+    "Artist": "Benjamin Ee",
+    "Link": "Reviewpage-Sab-Sunen,-Luxa-Embodied",
+    "": "",
+    "Picture": "Sab_Sunen__Luxa_Embodied.png"
+  }
+];
+    
+    // 2. Lees de queryparameter 'card' uit (bijv. ?card=Air%20Response%20Unit)
+    function getQueryParameter(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+    
+    const cardNameParam = getQueryParameter("card");
+    let cardInfo;
+    if (cardNameParam) {
+      cardInfo = cardData.find(card => card.Name === cardNameParam);
+    }
+    if (!cardInfo) {
+      // Als er geen parameter is of de kaart niet wordt gevonden, gebruik dan een standaardkaart.
+      cardInfo = cardData[0];
+    }
+        console.log("cardInfo:", cardInfo); // Debug log
+    
+    // 3. Vul de pagina dynamisch in (afbeelding en naam)
+    // Let op: voeg "Pictures/" toe voor de juiste map!
+    document.getElementById("cardImage").src = "Pictures/" + cardInfo.Picture;
+    document.getElementById("cardImage").alt = cardInfo.Name;
+    document.getElementById("cardName").textContent = cardInfo.Name;
+
+    // Initialize Supabase
+const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
+const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
+const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+    
+    // 5. Star rating functionality
+    let selectedRating = 0;
+    const stars = document.querySelectorAll('.star');
+    
+    function updateStars(rating, className) {
+      stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-value')) <= rating) {
+          star.classList.add(className);
+        } else {
+          star.classList.remove(className);
+        }
+      });
+    }
+    
+    function updateSelectedStars() {
+      stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
+          star.classList.add('selected');
+        } else {
+          star.classList.remove('selected');
+        }
+      });
+    }
+    
+    stars.forEach(star => {
+      star.addEventListener('mouseover', function() {
+        const rating = parseInt(this.getAttribute('data-value'));
+        updateStars(rating, 'hovered');
+      });
+      
+      star.addEventListener('mouseout', function() {
+        stars.forEach(s => s.classList.remove('hovered'));
+        updateSelectedStars();
+      });
+      
+      star.addEventListener('click', function() {
+        selectedRating = parseInt(this.getAttribute('data-value'));
+        updateSelectedStars();
+        console.log("Star clicked, rating set to:", selectedRating);
+      });
+    });
+    
+// Make sure this function is declared async because we use await inside.
+async function submitReview() {
+    console.log("submitReview called. selectedRating:", selectedRating);
+  const comment = document.getElementById("comment").value.trim();
+  if (!selectedRating || !comment) {
+    alert("Please provide a rating and a comment.");
+    return;
+  }
+  
+  // Build the review object. We also include the card name so we know which card this review is for.
+  const review = {
+    card: cardInfo.Name,    // cardInfo must be defined earlier in your code
+    rating: selectedRating,
+    comment: comment
+  };
+  
+  // Insert the review into the 'reviews' table in Supabase
+  const { data, error } = await supabaseClient
+    .from('reviews')
+    .insert([review]);
+  
+  if (error) {
+    console.error("Error submitting review:", error);
+    alert("There was an error submitting your review.");
+    return;
+  }
+  
+  // Reset rating and comment input
+  selectedRating = 0;
+  updateSelectedStars();
+  document.getElementById("comment").value = "";
+  
+  // Reload reviews from the database
+  loadReviews();
+}
+
+    
+// Declare as async because we use await to fetch data from Supabase.
+async function loadReviews() {
+  const reviewList = document.getElementById("reviewList");
+  reviewList.innerHTML = "";
+  
+  // Fetch all reviews for the current card from the 'reviews' table,
+  // ordering them by the created_at field (most recent first).
+  const { data: reviews, error } = await supabaseClient
+    .from('reviews')
+    .select('*')
+    .eq('card', cardInfo.Name) // Only get reviews for this card
+    .order('created_at', { ascending: false });
+  
+  if (error) {
+    console.error("Error loading reviews:", error);
+    return;
+  }
+  
+  // Loop over each review and create the HTML elements to display it.
+  reviews.forEach(review => {
+    const div = document.createElement("div");
+    div.className = "review-item";
+    div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
+    reviewList.appendChild(div);
+  });
+}
+    
+    document.addEventListener("DOMContentLoaded", loadReviews);
+    
+    // 5. Modal-functionaliteit voor full-screen zoom
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImg");
+    const closeBtn = document.querySelector(".close");
+    const cardImage = document.getElementById("cardImage");
+    
+    cardImage.addEventListener('click', function() {
+      modal.style.display = "block";
+      modalImg.src = this.src;
+    });
+    
+    closeBtn.addEventListener('click', function() {
+      modal.style.display = "none";
+    });
+    
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+    
+    // 6. Magnifying glass effect
+    const magnifier = document.getElementById("magnifier");
+    const zoomLevel = 2;
+    const magnifierSize = 150;
+    
+    cardImage.addEventListener("mousemove", function(e) {
+      cardImage.style.cursor = "none";
+      const rect = cardImage.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      
+      magnifier.style.display = "block";
+      const magnifierX = e.pageX - magnifierSize / 2;
+      const magnifierY = e.pageY - magnifierSize / 2;
+      magnifier.style.left = magnifierX + "px";
+      magnifier.style.top = magnifierY + "px";
+      
+      // Gebruik de al ingestelde cardImage.src (die wijst nu naar "Pictures/...")
+      magnifier.style.backgroundImage = `url(${cardImage.src})`;
+      const imgWidth = cardImage.clientWidth;
+      const imgHeight = cardImage.clientHeight;
+      magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
+      
+      const bgX = -((x * zoomLevel) - magnifierSize / 2);
+      const bgY = -((y * zoomLevel) - magnifierSize / 2);
+      magnifier.style.backgroundPosition = `${bgX}px ${bgY}px`;
+    });
+    
+    cardImage.addEventListener("mouseleave", function() {
+      magnifier.style.display = "none";
+      cardImage.style.cursor = "zoom-in";
+    });
+  </script>
+</body>
+</html>
