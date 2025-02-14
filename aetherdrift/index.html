@@ -6734,7 +6734,7 @@
       // Let op: de link verwijst naar "cards_dynamic.html" met de queryparameter "card".
       cardItem.innerHTML = `
         <a href="cards_dynamic.html?card=${encodeURIComponent(card.Name)}">
-          <img src="Pictures/${card.Picture}" alt="${card.Name}">
+          <img src="../Pictures/${card.Picture}" alt="${card.Name}">
           <h3>${card.Name}</h3>
         </a>
       `;
