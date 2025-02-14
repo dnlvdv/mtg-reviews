@@ -64,9 +64,11 @@
     }
 
     nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
       background: linear-gradient(90deg, #1e1e1e, #292929);
       padding: 15px 20px;
-      text-align: center;
       box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     }
 
@@ -86,23 +88,34 @@
       box-shadow: 0px 0px 10px rgba(255, 102, 0, 0.6);
     }
 
+    .home-link {
+      margin-right: auto; /* Pushes the Aether Drift link to the center */
+    }
+
+    .nav-center {
+      flex-grow: 1;
+      text-align: center;
+    }
+
     @media (max-width: 600px) {
       nav {
-        padding: 10px;
+        flex-direction: column;
+        text-align: center;
       }
 
-      nav a {
-        font-size: 16px;
-        padding: 8px 16px;
+      .home-link {
+        margin: 0 0 10px 0;
       }
     }
   </style>
 </head>
 <body>
   <div class="container">
-    <nav>
-  <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
-  <!-- Add more links for each set -->
+<nav>
+  <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
+  <div class="nav-center">
+    <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
+  </div>
 </nav>
     <h1>MTG Cards</h1>
     <input type="text" id="filterInput" placeholder="Filter cards...">
