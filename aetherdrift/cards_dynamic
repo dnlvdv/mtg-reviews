@@ -6863,7 +6863,7 @@
     
     // 3. Vul de pagina dynamisch in (afbeelding en naam)
     // Let op: voeg "Pictures/" toe voor de juiste map!
-    document.getElementById("cardImage").src = "Pictures/" + cardInfo.Picture;
+    document.getElementById("cardImage").src = "../Pictures/" + cardInfo.Picture;
     document.getElementById("cardImage").alt = cardInfo.Name;
     document.getElementById("cardName").textContent = cardInfo.Name;
 
