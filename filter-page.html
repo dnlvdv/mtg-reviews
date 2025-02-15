@@ -6,7 +6,9 @@
   <title>MTG Cards</title>
   <!-- Modern Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <style>
+        /* ---------- Global Styles ---------- */
     body {
       font-family: 'Roboto', sans-serif;
       background: linear-gradient(135deg, #1e1e1e, #121212);
@@ -14,65 +16,13 @@
       margin: 0;
       padding: 20px;
     }
+    
     .container {
       max-width: 1200px;
       margin: 0 auto;
     }
-        /* Layout: Two Columns */
-    .content-wrapper {
-      display: flex;
-      gap: 20px;
-      /* Optional: set a min-height so the sidebar spans the content */
-      min-height: 80vh;
-    }
-    
-    h1 {
-      text-align: center;
-      margin-bottom: 20px;
-    }
-    
-    /* Filter input styling */
-    #filterInput {
-      width: 100%;
-      max-width: 400px;
-      padding: 10px;
-      margin: 0 auto 30px auto;
-      display: block;
-      border: none;
-      border-radius: 8px;
-      font-size: 16px;
-    }
-    
-    /* Card grid styling */
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
-      gap: 20px;
-    }
-    .card-item {
-      background: #2b2b2b;
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
-      text-align: center;
-      transition: transform 0.3s;
-    }
-    .card-item:hover {
-      transform: translateY(-5px);
-    }
-    .card-item img {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-    .card-item h3 {
-      margin: 10px 0 0;
-    }
-    .card-item a {
-      text-decoration: none;
-      color: inherit;
-    }
 
+        /* ---------- Navigation ---------- */
     nav {
       display: flex;
       align-items: center;
@@ -80,6 +30,7 @@
       background: linear-gradient(90deg, #1e1e1e, #292929);
       padding: 15px 20px;
       box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+           margin-bottom: 20px; /* Space under the navbar */
     }
 
     nav a {
@@ -107,32 +58,32 @@
       text-align: center;
     }
 
-    /* ---- Responsive Adjustments ---- */
-    @media (max-width: 600px) {
-      .content-wrapper {
-        flex-direction: column;
-      }
-      .filter-sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 2px solid #444;
-        flex-direction: row;
-        justify-content: center;
-        gap: 10px;
-        padding: 10px;
-      }
-      .filter-option {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 0;
-      }
+        /* ---------- Page Title ---------- */
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+      margin-top: 0; /* Remove extra spacing if desired */
     }
 
-      .home-link {
-        margin: 0 0 10px 0;
-      }
+        /* Filter input styling */
+    #filterInput {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px;
+      margin: 0 auto 30px auto;
+      display: block;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
     }
 
+    /* ---------- Content Wrapper (Sidebar + Cards) ---------- */
+    .content-wrapper {
+      display: flex;
+      gap: 20px;       /* spacing between sidebar and card area */
+      min-height: 60vh; /* optional: some height to keep the layout tidy */
+    }
+    
     /* ---- Filter Sidebar (Left Column) ---- */
     .filter-sidebar {
       width: 80px;
@@ -164,11 +115,75 @@
       height: 100%;
       object-fit: cover;
     }
+
+    /* ---------- Main Content (Right) ---------- */
+    .main-content {
+      flex: 1; /* takes the remaining width after the sidebar */
+    }
+
+    /* ---------- Card Grid ---------- */
+      .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    .card-item {
+      background: #2b2b2b;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      transition: transform 0.3s;
+    }
+    .card-item:hover {
+      transform: translateY(-5px);
+    }
+    .card-item img {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+    }
+    .card-item h3 {
+      margin: 10px 0 0;
+    }
+    .card-item a {
+      text-decoration: none;
+      color: inherit;
+    }
+
+
+    /* ---- Responsive Adjustments ---- */
+    @media (max-width: 600px) {
+      .content-wrapper {
+        flex-direction: column;
+      }
+      .filter-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 2px solid #444;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10px;
+        padding: 10px;
+      }
+      .filter-option {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 0;
+      }
+    }
+
+      .home-link {
+        margin: 0 0 10px 0;
+      }
+    }
     
   </style>
 </head>
+  
 <body>
   <div class="container">
+        <!-- Navigation Bar -->
     <nav>
       <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
       <div class="nav-center">
@@ -176,8 +191,15 @@
       </div>
     </nav>
 
+        <!-- Page Title -->
+    <h1>MTG Cards</h1>
+
+     <!-- Filter Input -->
+    <input type="text" id="filterInput" placeholder="Filter cards..." />   
+
+    <!-- Main Two-Column Layout -->    
         <div class="content-wrapper">
-    <!-- FILTER SIDEBAR -->
+    <!-- FILTER SIDEBAR LEFT -->
     <aside class="filter-sidebar">
       <!-- Replace the src values with your image paths (e.g., white.png) -->
       <div class="filter-option" data-color="W">
@@ -197,14 +219,15 @@
       </div>
     </aside>
     
-    <h1>MTG Cards</h1>
-    <input type="text" id="filterInput" placeholder="Filter cards...">
-    <div class="card-grid" id="cardGrid">
+
+      <!-- MAIN CONTENT (Right) -->
+      <div class="main-content">
+        <div class="card-grid" id="cardGrid">
       <!-- Kaart-items worden hier dynamisch toegevoegd -->
+      </div>
     </div>
   </div>
-      </div>
-        </div>
+</div>
   
   <script>
     const cardData = [
