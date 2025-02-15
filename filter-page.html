@@ -171,7 +171,6 @@
         height: 40px;
         margin-bottom: 0;
       }
-    }
 
       .home-link {
         margin: 0 0 10px 0;
@@ -202,7 +201,7 @@
     <!-- FILTER SIDEBAR LEFT -->
     <aside class="filter-sidebar">
       <!-- Replace the src values with your image paths (e.g., white.png) -->
-      <div class="filter-opwtion" data-color="W">
+      <div class="filter-option" data-color="W">
         <img src="Pictures/White.png" alt="White" />
       </div>
       <div class="filter-option" data-color="U">
@@ -6872,28 +6871,21 @@
     // Dynamisch de kaart-items genereren in de card-grid
     const cardGrid = document.getElementById('cardGrid');
     
-    cardData.forEach(card => {
-      const cardItem = document.createElement('div');
-      cardItem.className = 'card-item';
-      cardItem.setAttribute('data-name', card.Name);
-      
-      // Bouw de HTML-structuur voor een kaart.
-      // Let op: de link verwijst naar "cards_dynamic.html" met de queryparameter "card".
-const cardItem = document.createElement('div');
-cardItem.className = 'card-item';
+cardData.forEach(card => {
+  const cardItem = document.createElement('div');
+  cardItem.className = 'card-item';
+  cardItem.setAttribute('data-name', card.Name);
+  cardItem.setAttribute('data-cost', card.Cost);
 
-// 1) Added data attributes for name & cost
-cardItem.setAttribute('data-name', card.Name);
-cardItem.setAttribute('data-cost', card.Cost);
+  cardItem.innerHTML = `
+    <a href="cards_dynamic.html?card=${encodeURIComponent(card.Name)}">
+      <img src="Pictures/${card.Picture}" alt="${card.Name}" />
+      <h3>${card.Name}</h3>
+    </a>
+  `;
+  cardGrid.appendChild(cardItem);
+});
 
-cardItem.innerHTML = `
-  <a href="cards_dynamic.html?card=${encodeURIComponent(card.Name)}">
-    <img src="Pictures/${card.Picture}" alt="${card.Name}" />
-    <h3>${card.Name}</h3>
-  </a>
-`;
-cardGrid.appendChild(cardItem);
-    });
 
    let activeFilters = []; // e.g. ["W", "B"]
 
@@ -6951,8 +6943,10 @@ function updateCardVisibility() {
 }
 
 // Hook into the text input event
+const filterInput = document.getElementById('filterInput');
 filterInput.addEventListener('input', updateCardVisibility);
 
+    
   </script>
 </body>
 </html>
