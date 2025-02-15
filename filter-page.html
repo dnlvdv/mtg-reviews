@@ -18,6 +18,14 @@
       max-width: 1200px;
       margin: 0 auto;
     }
+        /* Layout: Two Columns */
+    .content-wrapper {
+      display: flex;
+      gap: 20px;
+      /* Optional: set a min-height so the sidebar spans the content */
+      min-height: 80vh;
+    }
+    
     h1 {
       text-align: center;
       margin-bottom: 20px;
@@ -99,18 +107,33 @@
       text-align: center;
     }
 
+    /* ---- Responsive Adjustments ---- */
     @media (max-width: 600px) {
-      nav {
+      .content-wrapper {
         flex-direction: column;
-        text-align: center;
       }
+      .filter-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 2px solid #444;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10px;
+        padding: 10px;
+      }
+      .filter-option {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 0;
+      }
+    }
 
       .home-link {
         margin: 0 0 10px 0;
       }
     }
 
-    /* ---- Filter Sidebar ---- */
+    /* ---- Filter Sidebar (Left Column) ---- */
     .filter-sidebar {
       width: 80px;
       padding: 20px;
@@ -146,13 +169,15 @@
 </head>
 <body>
   <div class="container">
-<nav>
-  <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
-  <div class="nav-center">
-    <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
-  </div>
-</nav>
-        <!-- FILTER SIDEBAR -->
+    <nav>
+      <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
+      <div class="nav-center">
+        <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
+      </div>
+    </nav>
+
+        <div class="content-wrapper">
+    <!-- FILTER SIDEBAR -->
     <aside class="filter-sidebar">
       <!-- Replace the src values with your image paths (e.g., white.png) -->
       <div class="filter-option" data-color="W">
@@ -178,6 +203,8 @@
       <!-- Kaart-items worden hier dynamisch toegevoegd -->
     </div>
   </div>
+      </div>
+        </div>
   
   <script>
     const cardData = [
