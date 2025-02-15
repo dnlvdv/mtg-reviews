@@ -6879,26 +6879,80 @@
       
       // Bouw de HTML-structuur voor een kaart.
       // Let op: de link verwijst naar "cards_dynamic.html" met de queryparameter "card".
-      cardItem.innerHTML = `
-        <a href="cards_dynamic.html?card=${encodeURIComponent(card.Name)}">
-          <img src="Pictures/${card.Picture}" alt="${card.Name}">
-          <h3>${card.Name}</h3>
-        </a>
-      `;
-      
-      // Voeg het kaart-item toe aan de grid
-      cardGrid.appendChild(cardItem);
+const cardItem = document.createElement('div');
+cardItem.className = 'card-item';
+
+// 1) Added data attributes for name & cost
+cardItem.setAttribute('data-name', card.Name);
+cardItem.setAttribute('data-cost', card.Cost);
+
+cardItem.innerHTML = `
+  <a href="cards_dynamic.html?card=${encodeURIComponent(card.Name)}">
+    <img src="Pictures/${card.Picture}" alt="${card.Name}" />
+    <h3>${card.Name}</h3>
+  </a>
+`;
+cardGrid.appendChild(cardItem);
     });
+
+   let activeFilters = []; // e.g. ["W", "B"]
+
+// Query all color icons
+const filterOptions = document.querySelectorAll('.filter-option');
+
+filterOptions.forEach(option => {
+  option.addEventListener('click', () => {
+    const color = option.getAttribute('data-color');
+    
+    // Toggle the color in the array
+    if (activeFilters.includes(color)) {
+      // Remove it
+      activeFilters = activeFilters.filter(c => c !== color);
+      option.classList.remove('active');
+    } else {
+      // Add it
+      activeFilters.push(color);
+      option.classList.add('active');
+    }
+    
+    // Re-check card visibility after toggling
+    updateCardVisibility();
+  });
+});
+ 
     
     // Filtering functionaliteit
-    document.getElementById('filterInput').addEventListener('input', function() {
-      const filterValue = this.value.toLowerCase();
-      const cards = document.querySelectorAll('.card-item');
-      cards.forEach(card => {
-        const cardName = card.getAttribute('data-name').toLowerCase();
-        card.style.display = cardName.includes(filterValue) ? '' : 'none';
-      });
-    });
+function updateCardVisibility() {
+  const textQuery = filterInput.value.toLowerCase().trim();
+  const cards = document.querySelectorAll('.card-item');
+
+  cards.forEach(card => {
+    const cardName = card.getAttribute('data-name').toLowerCase();
+    const cardCost = card.getAttribute('data-cost') || "";
+
+    // 1) Check name filter
+    const matchesName = cardName.includes(textQuery);
+
+    // 2) Check color filter (all active colors must be in the cost)
+    const matchesColors = activeFilters.every(color => 
+      cardCost.includes(`{${color}}`)
+    );
+
+    // If no colors are selected, show all colors
+    const finalMatchesColors = activeFilters.length > 0 ? matchesColors : true;
+
+    // 3) Show/hide card
+    if (matchesName && finalMatchesColors) {
+      card.style.display = '';
+    } else {
+      card.style.display = 'none';
+    }
+  });
+}
+
+// Hook into the text input event
+filterInput.addEventListener('input', updateCardVisibility);
+
   </script>
 </body>
 </html>
