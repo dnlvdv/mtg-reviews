@@ -3,7 +3,11 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTG Card Review</title>
+  <title>Aetherdrift</title>
+    <!-- Meta tags for SEO -->
+  <meta name="description" content="Review all cards from Aether Drift. Discover ratings, comments, and more." />
+  <meta property="og:title" content="Aether Drift" />
+  <meta property="og:description" content="Review all cards from Aether Drift. Discover ratings, comments, and more." />
   <!-- Modern Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
@@ -13,27 +17,22 @@
       color: #e0e0e0;
       margin: 0;
       padding: 20px;
-      display: flex;
-	flex-direction: column; /* Ensures nav is on top */    
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
     }
-
- /* ---- NAVIGATION STYLING ---- */
+    .container {
+      max-width: 1200px;
+      margin: 0 auto;
+    }
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
+    }
 	nav {
-	width: 100%;
- 	position: fixed; /* Keeps navbar at the top */
-	top: 0;
-	left: 0;
   	display: flex;
   	align-items: center;
   	justify-content: space-between;
-  	background: rgba(30, 30, 30, 0.9); /* Slight transparency for a floating effect */
+  	background: linear-gradient(90deg, #1e1e1e, #292929);
   	padding: 15px 20px;
   	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
-	z-index: 100;
-  	backdrop-filter: blur(8px); /* Adds a glassmorphism effect */
 	}
 
 	nav a {
@@ -49,7 +48,7 @@
 	nav a:hover {
   	background: #ff6600;
   	color: #fff;
-  	box-shadow: 0px 0px 15px rgba(255, 102, 0, 0.6); /* Added a subtle glow */
+  	box-shadow: 0px 0px 10px rgba(255, 102, 0, 0.6);
 	}
 
 	.home-link {
@@ -71,184 +70,66 @@
     	margin: 0 0 10px 0;
   	}
 	}
-
-/* ---- CONTAINER STYLING ---- */
-    .container {
-      background: #2b2b2b;
-      padding: 30px;
-      max-width: 500px;
+    
+    /* Filter input styling */
+    #filterInput {
       width: 100%;
-      border-radius: 15px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-      text-align: center;
-      position: relative;
-      margin-top: 80px; /* Prevents navbar from covering it */
-    }
-    h1, h2 {
-      margin: 0 0 20px 0;
-    }
-	  
-    /* Card image styling */
-    #cardImage {
-      width: 100%;
-      max-width: 300px;
-      border-radius: 8px;
-      margin-bottom: 20px;
-      cursor: zoom-in;
-      transition: transform 0.3s;
-    }
-	  
-    /* Star rating styling */
-    .rating {
-      display: flex;
-      justify-content: center;
-      gap: 5px;
-      margin: 10px 0;
-    }
-    .star {
-      font-size: 32px;
-      cursor: pointer;
-      transition: color 0.2s, transform 0.2s;
-      color: #555;
-    }
-    .star:hover {
-      transform: scale(1.1);
-    }
-    .star.hovered,
-    .star.selected {
-      color: #ffcc00;
-    }
-
-/* ---- TEXTAREA STYLING ---- */
-    textarea {
-      width: 100%;
-      height: 100px;
-      margin-top: 15px;
+      max-width: 400px;
       padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #1e1e1e;
-      color: #e0e0e0;
-      resize: vertical;
-    }
-    button {
-      margin-top: 15px;
-      padding: 12px 25px;
-      background: #007acc;
-      color: white;
+      margin: 0 auto 30px auto;
+      display: block;
       border: none;
-      cursor: pointer;
       border-radius: 8px;
       font-size: 16px;
-      transition: background 0.3s;
     }
-    button:hover {
-      background: #005f99;
+    /* Card grid styling */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
     }
-    .review-list {
-      margin-top: 25px;
-      text-align: left;
+    .card-item {
+      background: #2b2b2b;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      transition: transform 0.3s;
     }
-    .review-item {
-      background: #333;
-      padding: 15px;
-      margin-top: 10px;
+    .card-item:hover {
+      transform: translateY(-5px);
+    }
+    .card-item img {
+      width: 100%;
+      height: auto;
       border-radius: 8px;
     }
-    .review-item strong {
-      display: block;
-      margin-bottom: 5px;
+    .card-item h3 {
+      margin: 10px 0 0;
     }
-    /* Modal styling voor full-screen zoom */
-    .modal {
-      display: none;
-      position: fixed;
-      z-index: 1000;
-      left: 0;
-      top: 0;
-      width: 100%;
-      height: 100%;
-      overflow: auto;
-      background-color: rgba(0, 0, 0, 0.8);
-    }
-    .modal-content {
-      margin: auto;
-      display: block;
-      max-width: 90%;
-      max-height: 90%;
-      border-radius: 10px;
-    }
-    .close {
-      position: absolute;
-      top: 20px;
-      right: 35px;
-      color: #f1f1f1;
-      font-size: 40px;
-      font-weight: bold;
-      cursor: pointer;
-    }
-    .close:hover,
-    .close:focus {
-      color: #bbb;
+    .card-item a {
       text-decoration: none;
-    }
-    /* Magnifier styling */
-    #magnifier {
-      position: absolute;
-      border: 3px solid #fff;
-      border-radius: 50%;
-      cursor: none;
-      width: 350px;
-      height: 350px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.5);
-      background-repeat: no-repeat;
-      display: none;
-      z-index: 1200;
-      pointer-events: none;
+      color: inherit;
     }
   </style>
-  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
+  <div class="container">
 <nav>
   <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
   <div class="nav-center">
 	<a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
   </div>
 </nav>
-
-  <div class="container">
-    <h1>MTG Card Review</h1>
-    <!-- Dynamisch ingestelde kaartafbeelding en -naam -->
-    <img id="cardImage" src="" alt="">
-    <h2 id="cardName"></h2>
-    
-    <!-- Reviewfunctionaliteit -->
-    <label for="rating">Rate this card:</label>
-    <div class="rating" id="rating">
-      <span class="star" data-value="1">★</span>
-      <span class="star" data-value="2">★</span>
-      <span class="star" data-value="3">★</span>
-      <span class="star" data-value="4">★</span>
-      <span class="star" data-value="5">★</span>
+    <h1>Aetherdrift cards</h1>
+    <input type="text" id="filterInput" placeholder="Filter cards...">
+    <div class="card-grid" id="cardGrid">
+      <!-- Kaart-items worden hier dynamisch toegevoegd -->
     </div>
-    <textarea id="comment" placeholder="Leave your review here..."></textarea>
-    <button onclick="submitReview()">Submit</button>
-    <div class="review-list" id="reviewList"></div>
   </div>
-  
-  <!-- Modal voor full-screen zoom -->
-  <div id="imageModal" class="modal">
-    <span class="close">&times;</span>
-    <img class="modal-content" id="modalImg">
-  </div>
-  
-  <!-- Magnifier element -->
-  <div id="magnifier"></div>
   
   <script>
-    // 1. JSON-data met kaartgegevens
     const cardData = [
   {
     "Set": "DFT",
@@ -6887,195 +6768,41 @@
     "Picture": "Sab_Sunen__Luxa_Embodied.png"
   }
 ];
-    
-    // 2. Lees de queryparameter 'card' uit (bijv. ?card=Air%20Response%20Unit)
-    function getQueryParameter(name) {
-      const params = new URLSearchParams(window.location.search);
-      return params.get(name);
-    }
-    
-    const cardNameParam = getQueryParameter("card");
-    let cardInfo;
-    if (cardNameParam) {
-      cardInfo = cardData.find(card => card.Name === cardNameParam);
-    }
-    if (!cardInfo) {
-      // Als er geen parameter is of de kaart niet wordt gevonden, gebruik dan een standaardkaart.
-      cardInfo = cardData[0];
-    }
-        console.log("cardInfo:", cardInfo); // Debug log
-    
-    // 3. Vul de pagina dynamisch in (afbeelding en naam)
-    // Let op: voeg "Pictures/" toe voor de juiste map!
-    document.getElementById("cardImage").src = "Pictures/" + cardInfo.Picture;
-    document.getElementById("cardImage").alt = cardInfo.Name;
-    document.getElementById("cardName").textContent = cardInfo.Name;
 
-    // Initialize Supabase
-const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
-const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
-const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-    
-    // 5. Star rating functionality
-    let selectedRating = 0;
-    const stars = document.querySelectorAll('.star');
-    
-    function updateStars(rating, className) {
-      stars.forEach(star => {
-        if (parseInt(star.getAttribute('data-value')) <= rating) {
-          star.classList.add(className);
-        } else {
-          star.classList.remove(className);
-        }
-      });
-    }
-    
-    function updateSelectedStars() {
-      stars.forEach(star => {
-        if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
-          star.classList.add('selected');
-        } else {
-          star.classList.remove('selected');
-        }
-      });
-    }
-    
-    stars.forEach(star => {
-      star.addEventListener('mouseover', function() {
-        const rating = parseInt(this.getAttribute('data-value'));
-        updateStars(rating, 'hovered');
-      });
-      
-      star.addEventListener('mouseout', function() {
-        stars.forEach(s => s.classList.remove('hovered'));
-        updateSelectedStars();
-      });
-      
-      star.addEventListener('click', function() {
-        selectedRating = parseInt(this.getAttribute('data-value'));
-        updateSelectedStars();
-        console.log("Star clicked, rating set to:", selectedRating);
-      });
-    });
-    
-// Make sure this function is declared async because we use await inside.
-async function submitReview() {
-    console.log("submitReview called. selectedRating:", selectedRating);
-  const comment = document.getElementById("comment").value.trim();
-  if (!selectedRating || !comment) {
-    alert("Please provide a rating and a comment.");
-    return;
-  }
-  
-  // Build the review object. We also include the card name so we know which card this review is for.
-  const review = {
-    card: cardInfo.Name,    // cardInfo must be defined earlier in your code
-    rating: selectedRating,
-    comment: comment
-  };
-  
-  // Insert the review into the 'reviews' table in Supabase
-  const { data, error } = await supabaseClient
-    .from('reviews')
-    .insert([review]);
-  
-  if (error) {
-    console.error("Error submitting review:", error);
-    alert("There was an error submitting your review.");
-    return;
-  }
-  
-  // Reset rating and comment input
-  selectedRating = 0;
-  updateSelectedStars();
-  document.getElementById("comment").value = "";
-  
-  // Reload reviews from the database
-  loadReviews();
-}
 
+  // Filter the cards for the Aether Drift set
+  const setCards = cardData.filter(card => card.Set.toLowerCase() === 'DFT');
+  const cardInfo = setCards[0];
     
-// Declare as async because we use await to fetch data from Supabase.
-async function loadReviews() {
-  const reviewList = document.getElementById("reviewList");
-  reviewList.innerHTML = "";
-  
-  // Fetch all reviews for the current card from the 'reviews' table,
-  // ordering them by the created_at field (most recent first).
-  const { data: reviews, error } = await supabaseClient
-    .from('reviews')
-    .select('*')
-    .eq('card', cardInfo.Name) // Only get reviews for this card
-    .order('created_at', { ascending: false });
-  
-  if (error) {
-    console.error("Error loading reviews:", error);
-    return;
-  }
-  
-  // Loop over each review and create the HTML elements to display it.
-  reviews.forEach(review => {
-    const div = document.createElement("div");
-    div.className = "review-item";
-    div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
-    reviewList.appendChild(div);
-  });
-}
+    // Dynamisch de kaart-items genereren in de card-grid
+    const cardGrid = document.getElementById('cardGrid');
     
-    document.addEventListener("DOMContentLoaded", loadReviews);
-    
-    // 5. Modal-functionaliteit voor full-screen zoom
-    const modal = document.getElementById("imageModal");
-    const modalImg = document.getElementById("modalImg");
-    const closeBtn = document.querySelector(".close");
-    const cardImage = document.getElementById("cardImage");
-    
-    cardImage.addEventListener('click', function() {
-      modal.style.display = "block";
-      modalImg.src = this.src;
-    });
-    
-    closeBtn.addEventListener('click', function() {
-      modal.style.display = "none";
-    });
-    
-    modal.addEventListener('click', function(e) {
-      if (e.target === modal) {
-        modal.style.display = "none";
-      }
-    });
-    
-    // 6. Magnifying glass effect
-    const magnifier = document.getElementById("magnifier");
-    const zoomLevel = 2;
-    const magnifierSize = 150;
-    
-    cardImage.addEventListener("mousemove", function(e) {
-      cardImage.style.cursor = "none";
-      const rect = cardImage.getBoundingClientRect();
-      const x = e.clientX - rect.left;
-      const y = e.clientY - rect.top;
+    cardData.forEach(card => {
+      const cardItem = document.createElement('div');
+      cardItem.className = 'card-item';
+      cardItem.setAttribute('data-name', card.Name);
       
-      magnifier.style.display = "block";
-      const magnifierX = e.pageX - magnifierSize / 2;
-      const magnifierY = e.pageY - magnifierSize / 2;
-      magnifier.style.left = magnifierX + "px";
-      magnifier.style.top = magnifierY + "px";
+      // Bouw de HTML-structuur voor een kaart.
+      // Let op: de link verwijst naar "cards_dynamic.html" met de queryparameter "card".
+      cardItem.innerHTML = `
+        <a href="../cards_dynamic.html?card=${encodeURIComponent(card.Name)}">
+          <img src="../Pictures/${card.Picture}" alt="${card.Name}">
+          <h3>${card.Name}</h3>
+        </a>
+      `;
       
-      // Gebruik de al ingestelde cardImage.src (die wijst nu naar "Pictures/...")
-      magnifier.style.backgroundImage = `url(${cardImage.src})`;
-      const imgWidth = cardImage.clientWidth;
-      const imgHeight = cardImage.clientHeight;
-      magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
-      
-      const bgX = -((x * zoomLevel) - magnifierSize / 2);
-      const bgY = -((y * zoomLevel) - magnifierSize / 2);
-      magnifier.style.backgroundPosition = `${bgX}px ${bgY}px`;
+      // Voeg het kaart-item toe aan de grid
+      cardGrid.appendChild(cardItem);
     });
     
-    cardImage.addEventListener("mouseleave", function() {
-      magnifier.style.display = "none";
-      cardImage.style.cursor = "zoom-in";
+    // Filtering functionaliteit
+    document.getElementById('filterInput').addEventListener('input', function() {
+      const filterValue = this.value.toLowerCase();
+      const cards = document.querySelectorAll('.card-item');
+      cards.forEach(card => {
+        const cardName = card.getAttribute('data-name').toLowerCase();
+        card.style.display = cardName.includes(filterValue) ? '' : 'none';
+      });
     });
   </script>
 </body>
