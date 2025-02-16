@@ -123,37 +123,38 @@
   </div>
   
   <script>
-    // Fetch the JSON data from blb.json
-    fetch('blb.json')
-      .then(response => response.json())
-      .then(cardData => {
-        // If the JSON is a single card object, wrap it in an array.
-        if (!Array.isArray(cardData)) {
-          cardData = [cardData];
-        }
-        // Filter cards by setCode (assumes all cards in blb.json have setCode "BLB")
-        const setCards = cardData.filter(card => card.setCode && card.setCode.trim().toUpperCase() === 'BLB');
-        
-        const cardGrid = document.getElementById('cardGrid');
-        
-        setCards.forEach(card => {
-          const cardItem = document.createElement('div');
-          cardItem.className = 'card-item';
-          cardItem.setAttribute('data-name', card.name);
-          
-          // Create a default link and picture name based on the card name
-          // Adjust these as needed if your JSON has alternative properties later
-          const cardLink = "Reviewpage-" + card.name.replace(/ /g, "-");
-          const cardPicture = card.name.replace(/ /g, "_") + ".png";
-          
-          cardItem.innerHTML = `
-            <a href="../cards_dynamic.html?card=${encodeURIComponent(card.name)}">
-              <img src="../Pictures/${cardPicture}" alt="${card.name}">
-              <h3>${card.name}</h3>
-            </a>
-          `;
-          cardGrid.appendChild(cardItem);
-        });
+fetch('blb.json')
+  .then(response => response.json())
+  .then(cardData => {
+    if (!Array.isArray(cardData)) {
+      cardData = [cardData];
+    }
+    
+    // Filter for only BLB set cards
+    const setCards = cardData.filter(card => card.setCode && card.setCode.trim().toUpperCase() === 'BLB');
+
+    const cardGrid = document.getElementById('cardGrid');
+
+    setCards.forEach(card => {
+      const cardNameEncoded = encodeURIComponent(card.name);
+      const cardPicture = `../Pictures/${card.name.replace(/\s+/g, '_')}.png`;
+
+      const cardItem = document.createElement('div');
+      cardItem.className = 'card-item';
+      cardItem.setAttribute('data-name', card.name);
+
+      cardItem.innerHTML = `
+        <a href="https://dnlvdv.github.io/mtg-reviews/cards_dynamic.html?card=${cardNameEncoded}">
+          <img src="${cardPicture}" alt="${card.name}" onerror="this.src='../Pictures/placeholder.png';">
+          <h3>${card.name}</h3>
+        </a>
+      `;
+
+      cardGrid.appendChild(cardItem);
+    });
+  })
+  .catch(error => console.error('Error loading card data:', error));
+
         
         // Filtering functionality remains the same
         document.getElementById('filterInput').addEventListener('input', function() {
