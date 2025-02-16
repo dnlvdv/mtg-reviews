@@ -132,7 +132,7 @@
           cardData = [cardData];
         }
         // Filter cards by setCode (assumes all cards in blb.json have setCode "BLB")
-        const setCards = cardData.filter(card => card.setCode && card.setCode.toLowerCase() === 'blb');
+        const setCards = cardData.filter(card => card.setCode && card.setCode.trim().toUpperCase() === 'BLB');
         
         const cardGrid = document.getElementById('cardGrid');
         
