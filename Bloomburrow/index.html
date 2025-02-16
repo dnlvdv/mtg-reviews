@@ -126,7 +126,14 @@
   fetch('blb.json')
     .then(response => response.json())
     .then(cardData => {
-      if (!Array.isArray(cardData)) {
+      // For debugging: log the entire JSON structure
+      console.log(cardData);
+      
+      // Check if the JSON is wrapped inside a "data" object with a "cards" array
+      if (cardData.data && Array.isArray(cardData.data.cards)) {
+        cardData = cardData.data.cards;
+      } else if (!Array.isArray(cardData)) {
+        // Fallback: if it's a single object, wrap it in an array
         cardData = [cardData];
       }
       
@@ -167,4 +174,5 @@
     });
   });
 </script>
-
+  </body>
+</html>
