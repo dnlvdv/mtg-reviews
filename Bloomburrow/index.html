@@ -4,13 +4,10 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>Bloomburrow cards</title>
-  <!-- Meta tags for SEO -->
-  <meta name="description" content="Review all cards from Bloomburrow. Discover ratings, comments, and more." />
-  <meta property="og:title" content="Bloomburrow" />
-  <meta property="og:description" content="Review all cards from Bloomburrow. Discover ratings, comments, and more." />
-  <!-- Modern Google Font -->
+  <!-- Your meta tags, fonts, and styles here -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
+    /* Your CSS styling here */
     body {
       font-family: 'Roboto', sans-serif;
       background: linear-gradient(135deg, #1e1e1e, #121212);
@@ -118,61 +115,60 @@
     <h1>Bloomburrow cards</h1>
     <input type="text" id="filterInput" placeholder="Filter cards...">
     <div class="card-grid" id="cardGrid">
-      <!-- Card items will be added here dynamically -->
+      <!-- Cards will be added here dynamically -->
     </div>
   </div>
   
-<script>
-  fetch('blb.json')
-    .then(response => response.json())
-    .then(cardData => {
-      // For debugging: log the entire JSON structure
-      console.log(cardData);
-      
-      // Check if the JSON is wrapped inside a "data" object with a "cards" array
-      if (cardData.data && Array.isArray(cardData.data.cards)) {
-        cardData = cardData.data.cards;
-      } else if (!Array.isArray(cardData)) {
-        // Fallback: if it's a single object, wrap it in an array
-        cardData = [cardData];
-      }
-      
-      // Filter for only BLB set cards
-      const setCards = cardData.filter(card => 
-        card.setCode && card.setCode.trim().toUpperCase() === 'BLB'
-      );
-  
-      const cardGrid = document.getElementById('cardGrid');
-  
-      setCards.forEach(card => {
-        const cardNameEncoded = encodeURIComponent(card.name);
-        const cardPicture = `../Pictures/${card.name.replace(/\s+/g, '_')}.png`;
-  
-        const cardItem = document.createElement('div');
-        cardItem.className = 'card-item';
-        cardItem.setAttribute('data-name', card.name);
-  
-        cardItem.innerHTML = `
-          <a href="https://dnlvdv.github.io/mtg-reviews/cards_dynamic.html?card=${cardNameEncoded}">
-            <img src="${cardPicture}" alt="${card.name}" onerror="this.src='../Pictures/placeholder.png';">
-            <h3>${card.name}</h3>
-          </a>
-        `;
-  
-        cardGrid.appendChild(cardItem);
+  <script>
+    fetch('blb.json')
+      .then(response => response.json())
+      .then(cardData => {
+        // Log the entire JSON for debugging
+        console.log(cardData);
+        
+        // Check if the JSON has a nested structure with data.cards
+        if (cardData.data && Array.isArray(cardData.data.cards)) {
+          cardData = cardData.data.cards;
+        } else if (!Array.isArray(cardData)) {
+          cardData = [cardData];
+        }
+        
+        // Filter for only BLB set cards
+        const setCards = cardData.filter(card => 
+          card.setCode && card.setCode.trim().toUpperCase() === 'BLB'
+        );
+    
+        const cardGrid = document.getElementById('cardGrid');
+    
+        setCards.forEach(card => {
+          const cardNameEncoded = encodeURIComponent(card.name);
+          const cardPicture = `../Pictures/${card.name.replace(/\s+/g, '_')}.png`;
+    
+          const cardItem = document.createElement('div');
+          cardItem.className = 'card-item';
+          cardItem.setAttribute('data-name', card.name);
+    
+          cardItem.innerHTML = `
+            <a href="https://dnlvdv.github.io/mtg-reviews/cards_dynamic.html?card=${cardNameEncoded}">
+              <img src="${cardPicture}" alt="${card.name}" onerror="this.src='../Pictures/placeholder.png';">
+              <h3>${card.name}</h3>
+            </a>
+          `;
+    
+          cardGrid.appendChild(cardItem);
+        });
+      })
+      .catch(error => console.error('Error loading card data:', error));
+    
+    // Filtering functionality
+    document.getElementById('filterInput').addEventListener('input', function() {
+      const filterValue = this.value.toLowerCase();
+      const cards = document.querySelectorAll('.card-item');
+      cards.forEach(card => {
+        const cardName = card.getAttribute('data-name').toLowerCase();
+        card.style.display = cardName.includes(filterValue) ? '' : 'none';
       });
-    })
-    .catch(error => console.error('Error loading card data:', error));
-  
-  // Filtering functionality remains the same
-  document.getElementById('filterInput').addEventListener('input', function() {
-    const filterValue = this.value.toLowerCase();
-    const cards = document.querySelectorAll('.card-item');
-    cards.forEach(card => {
-      const cardName = card.getAttribute('data-name').toLowerCase();
-      card.style.display = cardName.includes(filterValue) ? '' : 'none';
     });
-  });
-</script>
-  </body>
+  </script>
+</body>
 </html>
