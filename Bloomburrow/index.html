@@ -209,19 +209,19 @@
       <!-- FILTER SIDEBAR (Left Column) -->
       <aside class="filter-sidebar">
         <div class="filter-option" data-color="W">
-          <img src="Pictures/White.png" alt="White" />
+          <img src="../Pictures/White.png" alt="White" />
         </div>
         <div class="filter-option" data-color="U">
-          <img src="Pictures/Blue.png" alt="Blue" />
+          <img src="../Pictures/Blue.png" alt="Blue" />
         </div>
         <div class="filter-option" data-color="B">
-          <img src="Pictures/Black.png" alt="Black" />
+          <img src="../Pictures/Black.png" alt="Black" />
         </div>
         <div class="filter-option" data-color="R">
-          <img src="Pictures/Red.png" alt="Red" />
+          <img src="../Pictures/Red.png" alt="Red" />
         </div>
         <div class="filter-option" data-color="G">
-          <img src="Pictures/Green.png" alt="Green" />
+          <img src="../Pictures/Green.png" alt="Green" />
         </div>
       </aside>
 
@@ -261,11 +261,11 @@
           
           // Compute the picture path based on card name,
           // replacing spaces, commas, dashes, and apostrophes with underscores.
-          const cardPicture = "Pictures/" + card.name.replace(/[\s,\'\-]/g, '_') + ".png";
+          const cardPicture = "../Pictures/" + card.name.replace(/[\s,\'\-]/g, '_') + ".png";
           
           cardItem.innerHTML = `
             <a href="cards_dynamic.html?card=${encodeURIComponent(card.name)}">
-              <img src="${cardPicture}" alt="${card.name}" onerror="this.onerror=null; this.src='Pictures/placeholder.png';" />
+              <img src="${cardPicture}" alt="${card.name}" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';" />
               <h3>${card.name}</h3>
             </a>
           `;
