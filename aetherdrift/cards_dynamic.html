@@ -81,7 +81,28 @@
     h1, h2 {
       margin: 0 0 20px 0;
     }
-      
+
+label[for="rating"] {
+  display: block;
+  text-align: center;
+  margin-bottom: 10px;
+  font-size: 1.2rem;
+  color: #ffcc00;
+  letter-spacing: 0.5px;
+  background: linear-gradient(135deg, #2b2b2b, #1e1e1e);
+  padding: 10px 20px;
+  border: 2px solid #ff6600;
+  border-radius: 10px;
+  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
+  transition: transform 0.3s ease, box-shadow 0.3s ease;
+}
+
+label[for="rating"]:hover {
+  transform: translateY(-3px);
+  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
+}
+
+    
     /* Card image styling */
     #cardImage {
       width: 100%;
