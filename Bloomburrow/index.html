@@ -257,14 +257,14 @@
           const cardItem = document.createElement('div');
           cardItem.className = 'card-item';
           cardItem.setAttribute('data-name', card.name.toLowerCase());
-          cardItem.setAttribute('data-cost', card.cost || "");
+          cardItem.setAttribute('data-cost', card.manaCost || "");
           
           // Compute the picture path based on card name,
           // replacing spaces, commas, dashes, and apostrophes with underscores.
           const cardPicture = "../Pictures/" + card.name.replace(/[\s,\'\-]/g, '_') + ".png";
           
           cardItem.innerHTML = `
-            <a href="/bloomburrow/cards_dynamic.html?card=${encodeURIComponent(card.name)}">
+            <a href="/Bloomburrow/cards_dynamic.html?card=${encodeURIComponent(card.name)}">
               <img src="${cardPicture}" alt="${card.name}" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';" />
               <h3>${card.name}</h3>
             </a>
