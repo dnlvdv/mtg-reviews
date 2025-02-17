@@ -265,19 +265,19 @@
       // Read the 'card' query parameter (e.g., ?card=Air%20Response%20Unit)
       const cardNameParam = getQueryParameter("card");
       // Find the matching card using the "Name" property.
-      cardInfo = data.find(card => card.Name === cardNameParam);
+      cardInfo = data.find(card => card.name === cardNameParam);
       if (!cardInfo) {
         // If not found, default to the first card.
         cardInfo = data[0];
       }
       
       // Compute the image path by replacing spaces, commas, dashes, and apostrophes with underscores.
-      const cardPicture = "../Pictures/" + cardInfo.Name.replace(/[\s,\'\-]/g, '_') + ".png";
+      const cardPicture = "../Pictures/" + cardInfo.name.replace(/[\s,\'\-]/g, '_') + ".png";
       
       // Update the page with the card's image and name.
       document.getElementById("cardImage").src = cardPicture;
-      document.getElementById("cardImage").alt = cardInfo.Name;
-      document.getElementById("cardName").textContent = cardInfo.Name;
+      document.getElementById("cardImage").alt = cardInfo.name;
+      document.getElementById("cardName").textContent = cardInfo.name;
       
       // Now that cardInfo is defined, load reviews.
       loadReviews();
