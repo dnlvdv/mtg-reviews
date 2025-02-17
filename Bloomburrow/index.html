@@ -265,7 +265,7 @@
           const cardPicture = "../Pictures/" + card.name.replace(/[\s,\'\-]/g, '_') + ".png";
           
           cardItem.innerHTML = `
-            <a href="/Bloomburrow/cards_dynamic.html?card=${encodeURIComponent(card.name)}">
+            <a href="/mtg-reviews/Bloomburrow/cards_dynamic.html?card=${encodeURIComponent(card.name)}">
               <img src="${cardPicture}" alt="${card.name}" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';" />
               <h3>${card.name}</h3>
             </a>
