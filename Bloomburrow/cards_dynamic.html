@@ -215,7 +215,7 @@
 <div class="container">
   <h1>MTG Card Review</h1>
   <!-- Dynamically inserted card image and name -->
-  <img id="cardImage" src="" alt="" onerror="this.src='Pictures/placeholder.png';">
+  <img id="cardImage" src="" alt="" onerror="this.src='../Pictures/placeholder.png';">
   <h2 id="cardName"></h2>
   
   <!-- Review functionality -->
@@ -272,7 +272,7 @@
       }
       
       // Compute the image path by replacing spaces, commas, dashes, and apostrophes with underscores.
-      const cardPicture = "Pictures/" + cardInfo.Name.replace(/[\s,\'\-]/g, '_') + ".png";
+      const cardPicture = "../Pictures/" + cardInfo.Name.replace(/[\s,\'\-]/g, '_') + ".png";
       
       // Update the page with the card's image and name.
       document.getElementById("cardImage").src = cardPicture;
