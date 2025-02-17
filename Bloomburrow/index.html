@@ -142,7 +142,7 @@
     
         setCards.forEach(card => {
           const cardNameEncoded = encodeURIComponent(card.name);
-          const cardPicture = `../Pictures/${card.name.replace(/\s+/g, '_')}.png`;
+          const cardPicture = `../Pictures/${card.name.replace(/[\s,\'\-]/g, '_')}.png`;
     
           const cardItem = document.createElement('div');
           cardItem.className = 'card-item';
