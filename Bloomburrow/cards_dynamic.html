@@ -341,11 +341,11 @@
     }
     
     // Build the review object (include the card name to associate the review)
-    const review = {
-      card: cardInfo.Name,
-      rating: selectedRating,
-      comment: comment
-    };
+const review = {
+  card: cardInfo.name,
+  rating: selectedRating,
+  comment: comment
+};
     
     // Insert the review into the 'reviews' table in Supabase.
     const { data, error } = await supabaseClient
@@ -378,7 +378,7 @@
     const { data: reviews, error } = await supabaseClient
       .from('reviews')
       .select('*')
-      .eq('card', cardInfo.Name)
+      .eq('card', cardInfo.name)
       .order('created_at', { ascending: false });
     
     if (error) {
