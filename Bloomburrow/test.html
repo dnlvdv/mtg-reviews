@@ -4,7 +4,7 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MTG Card Review</title>
-  <!-- Modern Google Font -->
+  <!-- Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   <style>
     body {
@@ -19,7 +19,7 @@
       align-items: center;
       min-height: 100vh;
     }
-    /* ---- NAVIGATION STYLING ---- */
+    /* Navigation */
     nav {
       width: 100%;
       position: fixed;
@@ -54,8 +54,7 @@
       nav { flex-direction: column; text-align: center; }
       .home-link { margin: 0 0 10px 0; }
     }
-    
-    /* ---- CONTAINER STYLING ---- */
+    /* Container */
     .container {
       background: #2b2b2b;
       padding: 30px;
@@ -65,8 +64,7 @@
       box-shadow: 0 8px 16px rgba(0,0,0,0.3);
       margin-top: 80px;
     }
-    
-    /* ---- CARD DISPLAY SECTION ---- */
+    /* Card display */
     .card-container {
       display: flex;
       gap: 20px;
@@ -74,7 +72,10 @@
       align-items: flex-start;
       margin-bottom: 30px;
     }
-    .card-art { flex: 1; max-width: 300px; }
+    .card-art { 
+      flex: 1; 
+      max-width: 300px; 
+    }
     #cardImage {
       width: 100%;
       border-radius: 8px;
@@ -82,17 +83,33 @@
       transition: transform 0.3s;
     }
     .card-details {
-      flex: 2;
+      flex: 1.4; /* Reduced from 2 to 1.4 (~30% less width) */
       display: flex;
       flex-direction: column;
-      justify-content: flex-start;
-      font-size: 16px;
-      line-height: 1.5;
+      gap: 10px;
     }
-    .card-details h2 { margin: 0 0 10px 0; font-size: 1.8rem; }
-    .card-details p { margin: 5px 0; }
+    .card-title {
+      font-size: 1.8rem;
+      margin-bottom: 10px;
+    }
+    .mana-symbol {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      margin: 0 2px;
+    }
+    .card-section {
+      padding: 10px;
+      border: 1px solid #444;
+      border-radius: 8px;
+      background: #1e1e1e;
+    }
+    .card-section h3 {
+      margin: 0 0 5px 0;
+      font-size: 1.1rem;
+      color: #ffcc00;
+    }
     .copy-btn {
-      margin-top: 10px;
       padding: 8px 15px;
       background: #007acc;
       color: #fff;
@@ -104,8 +121,7 @@
       align-self: flex-start;
     }
     .copy-btn:hover { background: #005f99; }
-    
-    /* ---- REVIEW STYLING ---- */
+    /* Review styling */
     label[for="rating"] {
       display: block;
       text-align: center;
@@ -170,8 +186,7 @@
       border-radius: 8px;
     }
     .review-item strong { display: block; margin-bottom: 5px; }
-    
-    /* ---- MODAL & MAGNIFIER STYLING ---- */
+    /* Modal & magnifier */
     .modal {
       display: none;
       position: fixed;
@@ -221,7 +236,6 @@
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
-
   <nav>
     <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
     <div class="nav-center">
@@ -236,17 +250,28 @@
         <img id="cardImage" src="" alt="Card Art" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';">
       </div>
       <div class="card-details">
-        <!-- Card details will be populated here -->
-        <h2 id="cardTitle"></h2>
-        <p id="cardType"></p>
-        <p id="cardText"></p>
-        <p id="cardFlavor"></p>
-        <p id="cardArtist"></p>
+        <div class="card-title" id="cardTitle"></div>
+        <div class="card-section">
+          <h3>Type</h3>
+          <p id="cardType"></p>
+        </div>
+        <div class="card-section">
+          <h3>Text</h3>
+          <p id="cardText"></p>
+        </div>
+        <div class="card-section">
+          <h3>Flavor</h3>
+          <p id="cardFlavor"></p>
+        </div>
+        <div class="card-section">
+          <h3>Artist</h3>
+          <p id="cardArtist"></p>
+        </div>
         <button class="copy-btn" onclick="copyCardInfo()">Copy Card Info</button>
       </div>
     </div>
 
-    <!-- Review functionality -->
+    <!-- Review Section -->
     <label for="rating">Rate this card:</label>
     <div class="rating" id="rating">
       <span class="star" data-value="1">★</span>
@@ -265,213 +290,208 @@
     <span class="close">&times;</span>
     <img class="modal-content" id="modalImg">
   </div>
-
   <!-- Magnifier element -->
   <div id="magnifier"></div>
 
   <script>
     let cardInfo;
 
-    // Wait for DOM to load.
-    document.addEventListener("DOMContentLoaded", function() {
+    // Replace mana symbols with images.
+    function parseManaCost(manaCost) {
+      return manaCost
+        .replace(/{W}/g, '<img src="../Pictures/White.png" alt="White" class="mana-symbol">')
+        .replace(/{U}/g, '<img src="../Pictures/Blue.png" alt="Blue" class="mana-symbol">')
+        .replace(/{B}/g, '<img src="../Pictures/Black.png" alt="Black" class="mana-symbol">')
+        .replace(/{R}/g, '<img src="../Pictures/Red.png" alt="Red" class="mana-symbol">')
+        .replace(/{G}/g, '<img src="../Pictures/Green.png" alt="Green" class="mana-symbol">');
+    }
 
-      function getQueryParameter(name) {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name);
-      }
+    // Get URL query parameters.
+    function getQueryParameter(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
 
-      // Fetch card data from blb.json
-      fetch('blb.json')
-        .then(response => {
-          if (!response.ok) {
-            throw new Error("Network response was not ok");
-          }
-          return response.json();
-        })
-        .then(data => {
-          // Adjust data structure if needed.
-          if (data.data && Array.isArray(data.data.cards)) {
-            data = data.data.cards;
-          } else if (!Array.isArray(data)) {
-            data = [data];
-          }
-          if (!data.length) {
-            document.querySelector('.container').innerHTML = "<p>No card data available.</p>";
-            return;
-          }
-
-          const cardNameParam = getQueryParameter("card");
-          cardInfo = data.find(card => card.name === cardNameParam);
-          if (!cardInfo) {
-            cardInfo = data[0];
-          }
-          
-          // Construct the image path (ensure the path matches your folder structure).
-          const cardPicture = "../Pictures/" + cardInfo.name.replace(/[\s,\'\-]/g, '_') + ".png";
-
-          // Update the page with card info.
-          document.getElementById("cardImage").src = cardPicture;
-          document.getElementById("cardImage").alt = cardInfo.name;
-          document.getElementById("cardTitle").textContent = cardInfo.name + " - " + cardInfo.manaCost;
-          document.getElementById("cardType").textContent = cardInfo.type;
-          document.getElementById("cardText").textContent = cardInfo.text;
-          document.getElementById("cardFlavor").textContent = cardInfo.flavorText;
-          document.getElementById("cardArtist").textContent = "Artist: " + cardInfo.artist;
-          
-          loadReviews();
-        })
-        .catch(error => console.error("Error loading card data:", error));
-      
-      // Copy card info functionality.
-      window.copyCardInfo = function() {
-        const info = document.getElementById("cardTitle").textContent + "\n" +
-                     document.getElementById("cardType").textContent + "\n" +
-                     document.getElementById("cardText").textContent + "\n" +
-                     document.getElementById("cardFlavor").textContent + "\n" +
-                     document.getElementById("cardArtist").textContent;
-        navigator.clipboard.writeText(info)
-          .then(() => alert("Card info copied to clipboard!"))
-          .catch(err => alert("Error copying card info: " + err));
-      };
-
-      // Initialize Supabase.
-      const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
-      const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
-
-      // Star rating functionality.
-      let selectedRating = 0;
-      const stars = document.querySelectorAll('.star');
-
-      function updateStars(rating, className) {
-        stars.forEach(star => {
-          if (parseInt(star.getAttribute('data-value')) <= rating) {
-            star.classList.add(className);
-          } else {
-            star.classList.remove(className);
-          }
-        });
-      }
-
-      function updateSelectedStars() {
-        stars.forEach(star => {
-          if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
-            star.classList.add('selected');
-          } else {
-            star.classList.remove('selected');
-          }
-        });
-      }
-
-      stars.forEach(star => {
-        star.addEventListener('mouseover', function() {
-          const rating = parseInt(this.getAttribute('data-value'));
-          updateStars(rating, 'hovered');
-        });
-        star.addEventListener('mouseout', function() {
-          stars.forEach(s => s.classList.remove('hovered'));
-          updateSelectedStars();
-        });
-        star.addEventListener('click', function() {
-          selectedRating = parseInt(this.getAttribute('data-value'));
-          updateSelectedStars();
-          console.log("Star clicked, rating set to:", selectedRating);
-        });
-      });
-
-      // Submit review functionality.
-      window.submitReview = async function() {
-        const comment = document.getElementById("comment").value.trim();
-        if (!selectedRating || !comment) {
-          alert("Please provide a rating and a comment.");
-          return;
+    // Fetch card data.
+    fetch('blb.json')
+      .then(response => response.json())
+      .then(data => {
+        if (data.data && Array.isArray(data.data.cards)) {
+          data = data.data.cards;
+        } else if (!Array.isArray(data)) {
+          data = [data];
         }
-        const review = {
-          card: cardInfo.name,
-          rating: selectedRating,
-          comment: comment
-        };
-        const { data, error } = await supabaseClient
-          .from('reviews')
-          .insert([review]);
-        if (error) {
-          console.error("Error submitting review:", error);
-          alert("There was an error submitting your review.");
-          return;
-        }
-        selectedRating = 0;
-        updateSelectedStars();
-        document.getElementById("comment").value = "";
+        const cardNameParam = getQueryParameter("card");
+        cardInfo = data.find(card => card.name === cardNameParam);
+        if (!cardInfo) { cardInfo = data[0]; }
+        
+        // Build the image path.
+        const cardPicture = "../Pictures/" + cardInfo.name.replace(/[\s,\'\-]/g, '_') + ".png";
+        document.getElementById("cardImage").src = cardPicture;
+        document.getElementById("cardImage").alt = cardInfo.name;
+        
+        // Set card title (name and parsed mana cost).
+        document.getElementById("cardTitle").innerHTML = cardInfo.name + " - " + parseManaCost(cardInfo.manaCost);
+        document.getElementById("cardType").textContent = cardInfo.type;
+        document.getElementById("cardText").textContent = cardInfo.text;
+        document.getElementById("cardFlavor").textContent = cardInfo.flavorText;
+        document.getElementById("cardArtist").textContent = "Artist: " + cardInfo.artist;
+        
         loadReviews();
-      };
+      })
+      .catch(error => console.error("Error loading card data:", error));
 
-      // Load reviews from Supabase.
-      async function loadReviews() {
-        if (!cardInfo) return;
-        const reviewList = document.getElementById("reviewList");
-        reviewList.innerHTML = "";
-        const { data: reviews, error } = await supabaseClient
-          .from('reviews')
-          .select('*')
-          .eq('card', cardInfo.name)
-          .order('created_at', { ascending: false });
-        if (error) {
-          console.error("Error loading reviews:", error);
-          return;
+    // Copy card info.
+    function copyCardInfo() {
+      const info = cardInfo.name + " - " + cardInfo.manaCost + "\n" +
+                   "Type: " + cardInfo.type + "\n" +
+                   "Text: " + cardInfo.text + "\n" +
+                   "Flavor: " + cardInfo.flavorText + "\n" +
+                   "Artist: " + cardInfo.artist;
+      navigator.clipboard.writeText(info)
+        .then(() => alert("Card info copied to clipboard!"))
+        .catch(err => alert("Error copying card info: " + err));
+    }
+
+    // Initialize Supabase.
+    const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Star rating functionality.
+    let selectedRating = 0;
+    const stars = document.querySelectorAll('.star');
+    
+    function updateStars(rating, className) {
+      stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-value')) <= rating) {
+          star.classList.add(className);
+        } else {
+          star.classList.remove(className);
         }
-        reviews.forEach(review => {
-          const div = document.createElement("div");
-          div.className = "review-item";
-          div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
-          reviewList.appendChild(div);
-        });
+      });
+    }
+    
+    function updateSelectedStars() {
+      stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
+          star.classList.add('selected');
+        } else {
+          star.classList.remove('selected');
+        }
+      });
+    }
+    
+    stars.forEach(star => {
+      star.addEventListener('mouseover', function() {
+        const rating = parseInt(this.getAttribute('data-value'));
+        updateStars(rating, 'hovered');
+      });
+      star.addEventListener('mouseout', function() {
+        stars.forEach(s => s.classList.remove('hovered'));
+        updateSelectedStars();
+      });
+      star.addEventListener('click', function() {
+        selectedRating = parseInt(this.getAttribute('data-value'));
+        updateSelectedStars();
+        console.log("Star clicked, rating set to:", selectedRating);
+      });
+    });
+    
+    // Submit review.
+    async function submitReview() {
+      const comment = document.getElementById("comment").value.trim();
+      if (!selectedRating || !comment) {
+        alert("Please provide a rating and a comment.");
+        return;
       }
-
-      // Modal functionality for full-screen zoom.
-      const modal = document.getElementById("imageModal");
-      const modalImg = document.getElementById("modalImg");
-      const closeBtn = document.querySelector(".close");
-      const cardImage = document.getElementById("cardImage");
-
-      cardImage.addEventListener('click', function() {
-        modal.style.display = "block";
-        modalImg.src = this.src;
+      const review = {
+        card: cardInfo.name,
+        rating: selectedRating,
+        comment: comment
+      };
+      const { data, error } = await supabaseClient
+        .from('reviews')
+        .insert([review]);
+      if (error) {
+        console.error("Error submitting review:", error);
+        alert("There was an error submitting your review.");
+        return;
+      }
+      selectedRating = 0;
+      updateSelectedStars();
+      document.getElementById("comment").value = "";
+      loadReviews();
+    }
+    
+    // Load reviews.
+    async function loadReviews() {
+      if (!cardInfo) return;
+      const reviewList = document.getElementById("reviewList");
+      reviewList.innerHTML = "";
+      const { data: reviews, error } = await supabaseClient
+        .from('reviews')
+        .select('*')
+        .eq('card', cardInfo.name)
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error("Error loading reviews:", error);
+        return;
+      }
+      reviews.forEach(review => {
+        const div = document.createElement("div");
+        div.className = "review-item";
+        div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
+        reviewList.appendChild(div);
       });
-      closeBtn.addEventListener('click', function() {
+    }
+    
+    // Modal functionality for full-screen zoom.
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImg");
+    const closeBtn = document.querySelector(".close");
+    const cardImage = document.getElementById("cardImage");
+    
+    cardImage.addEventListener('click', function() {
+      modal.style.display = "block";
+      modalImg.src = this.src;
+    });
+    closeBtn.addEventListener('click', function() {
+      modal.style.display = "none";
+    });
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
         modal.style.display = "none";
-      });
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          modal.style.display = "none";
-        }
-      });
-
-      // Magnifier functionality.
-      const magnifier = document.getElementById("magnifier");
-      const zoomLevel = 2;
-      const magnifierSize = 150;
-      cardImage.addEventListener("mousemove", function(e) {
-        cardImage.style.cursor = "none";
-        const rect = cardImage.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        magnifier.style.display = "block";
-        const magnifierX = e.pageX - magnifierSize / 2;
-        const magnifierY = e.pageY - magnifierSize / 2;
-        magnifier.style.left = magnifierX + "px";
-        magnifier.style.top = magnifierY + "px";
-        magnifier.style.backgroundImage = "url(" + cardImage.src + ")";
-        const imgWidth = cardImage.clientWidth;
-        const imgHeight = cardImage.clientHeight;
-        magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
-        const bgX = -((x * zoomLevel) - magnifierSize / 2);
-        const bgY = -((y * zoomLevel) - magnifierSize / 2);
-        magnifier.style.backgroundPosition = bgX + "px " + bgY + "px";
-      });
-      cardImage.addEventListener("mouseleave", function() {
-        magnifier.style.display = "none";
-        cardImage.style.cursor = "zoom-in";
-      });
+      }
+    });
+    
+    // Magnifier functionality.
+    const magnifier = document.getElementById("magnifier");
+    const zoomLevel = 2;
+    const magnifierSize = 150;
+    
+    cardImage.addEventListener("mousemove", function(e) {
+      cardImage.style.cursor = "none";
+      const rect = cardImage.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      magnifier.style.display = "block";
+      const magnifierX = e.pageX - magnifierSize / 2;
+      const magnifierY = e.pageY - magnifierSize / 2;
+      magnifier.style.left = magnifierX + "px";
+      magnifier.style.top = magnifierY + "px";
+      magnifier.style.backgroundImage = "url(" + cardImage.src + ")";
+      const imgWidth = cardImage.clientWidth;
+      const imgHeight = cardImage.clientHeight;
+      magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
+      const bgX = -((x * zoomLevel) - magnifierSize / 2);
+      const bgY = -((y * zoomLevel) - magnifierSize / 2);
+      magnifier.style.backgroundPosition = bgX + "px " + bgY + "px";
+    });
+    
+    cardImage.addEventListener("mouseleave", function() {
+      magnifier.style.display = "none";
+      cardImage.style.cursor = "zoom-in";
     });
   </script>
 </body>
