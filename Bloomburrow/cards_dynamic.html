@@ -4,176 +4,204 @@
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <title>MTG Card Review</title>
-  <!-- Modern Google Font -->
-  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <!-- Comfortaa font from Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
-    body {
-      font-family: 'Roboto', sans-serif;
-      background: linear-gradient(135deg, #1e1e1e, #121212);
-      color: #e0e0e0;
-      margin: 0;
-      padding: 20px;
-      display: flex;
-      flex-direction: column; /* Ensures nav is on top */    
-      justify-content: center;
-      align-items: center;
-      min-height: 100vh;
+    /* Basic resets */
+    * {
+      margin: 0; 
+      padding: 0; 
+      box-sizing: border-box;
     }
-
-    /* ---- NAVIGATION STYLING ---- */
+    body {
+      font-family: 'Comfortaa', sans-serif;
+      background: #121212; 
+      color: #e0e0e0;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+    }
+    /* Navigation */
     nav {
       width: 100%;
-      position: fixed; /* Keeps navbar at the top */
+      position: fixed;
       top: 0;
       left: 0;
+      background: #1a1a1a;
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: rgba(30, 30, 30, 0.9); /* Slight transparency for a floating effect */
-      padding: 15px 20px;
-      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+      padding: 10px 20px;
+      box-shadow: 0 2px 4px rgba(0,0,0,0.3);
       z-index: 100;
-      backdrop-filter: blur(8px); /* Adds a glassmorphism effect */
     }
     nav a {
       color: #ffffff;
       text-decoration: none;
-      font-size: 18px;
-      font-weight: bold;
-      padding: 10px 20px;
-      border-radius: 5px;
-      transition: all 0.3s ease-in-out;
+      font-size: 16px;
+      font-weight: 400;
+      padding: 8px 12px;
+      border-radius: 4px;
+      transition: background 0.3s;
     }
     nav a:hover {
-      background: #ff6600;
-      color: #fff;
-      box-shadow: 0px 0px 15px rgba(255, 102, 0, 0.6); /* Added a subtle glow */
+      background: #ff9900;
+      color: #1a1a1a;
     }
     .home-link {
-      margin-right: auto; /* Pushes the Aether Drift link to the center */
+      margin-right: auto;
     }
     .nav-center {
-      flex-grow: 1;
-      text-align: center;
+      display: flex;
+      gap: 10px;
     }
-    @media (max-width: 600px) {
-      nav {
-        flex-direction: column;
-        text-align: center;
-      }
-      .home-link {
-        margin: 0 0 10px 0;
-      }
-    }
-
-    /* ---- CONTAINER STYLING ---- */
+    /* Container */
     .container {
-      background: #2b2b2b;
-      padding: 30px;
-      max-width: 500px;
+      max-width: 1000px; /* container width */
       width: 100%;
-      border-radius: 15px;
-      box-shadow: 0 8px 16px rgba(0,0,0,0.3);
-      text-align: center;
-      position: relative;
-      margin-top: 80px; /* Prevents navbar from covering it */
+      background: #1f1f1f;
+      margin-top: 60px; /* leaves space for nav */
+      margin-bottom: 40px;
+      padding: 20px;
+      border-radius: 10px;
+      box-shadow: 0 2px 6px rgba(0,0,0,0.3);
     }
-    h1, h2 {
-      margin: 0 0 20px 0;
+    /* Card display */
+    .card-container {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      margin-bottom: 20px;
     }
-      
-    /* Card image styling */
+    .card-art {
+      flex: 1;
+      max-width: 280px;
+    }
     #cardImage {
       width: 100%;
-      max-width: 300px;
-      border-radius: 8px;
-      margin-bottom: 20px;
+      border-radius: 6px;
       cursor: zoom-in;
       transition: transform 0.3s;
     }
-      
-    /* Star rating styling */
+    #cardImage:hover {
+      transform: scale(1.02);
+    }
+    .card-details {
+      flex: 0.6;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+    }
+    .card-title {
+      font-size: 1.5rem;
+      font-weight: 700;
+      color: #ff9900; /* accent color for the card title */
+    }
+    /* Card sections */
+    .card-section {
+      background: #2a2a2a;
+      border: 1px solid #333;
+      border-radius: 6px;
+      padding: 8px;
+    }
+    .card-section h3 {
+      margin-bottom: 4px;
+      font-size: 1rem;
+      color: #ff9900;
+      font-weight: 700;
+    }
+    /* Mana symbols */
+    .mana-symbol {
+      width: 20px;
+      height: 20px;
+      vertical-align: middle;
+      margin: 0 2px;
+    }
+    /* Buttons */
+    .copy-btn {
+      background: #ff9900;
+      color: #121212;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 14px;
+      padding: 8px 15px;
+      transition: background 0.3s;
+      align-self: flex-start;
+    }
+    .copy-btn:hover {
+      background: #ff7700;
+    }
+    button.submit-review {
+      background: #ff9900;
+      color: #121212;
+      border: none;
+      cursor: pointer;
+      border-radius: 6px;
+      font-size: 16px;
+      padding: 10px 20px;
+      margin-top: 10px;
+      transition: background 0.3s;
+    }
+    button.submit-review:hover {
+      background: #ff7700;
+    }
+    /* Review styling */
+    label[for="rating"] {
+      display: block;
+      text-align: center;
+      font-size: 1.1rem;
+      color: #ff9900;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
     .rating {
       display: flex;
       justify-content: center;
       gap: 5px;
-      margin: 10px 0;
+      margin-bottom: 10px;
     }
     .star {
-      font-size: 32px;
+      font-size: 24px; 
       cursor: pointer;
-      transition: color 0.2s, transform 0.2s;
       color: #555;
+      transition: color 0.2s, transform 0.2s;
     }
-label[for="rating"] {
-  display: block;
-  text-align: center;
-  margin-bottom: 10px;
-  font-size: 1.2rem;
-  color: #ffcc00;
-  letter-spacing: 0.5px;
-  background: linear-gradient(135deg, #2b2b2b, #1e1e1e);
-  padding: 10px 20px;
-  border: 2px solid #ff6600;
-  border-radius: 10px;
-  box-shadow: 0 4px 6px rgba(0, 0, 0, 0.3);
-  transition: transform 0.3s ease, box-shadow 0.3s ease;
-}
-
-label[for="rating"]:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 6px 10px rgba(0, 0, 0, 0.4);
-}
-
     .star:hover {
       transform: scale(1.1);
     }
     .star.hovered,
     .star.selected {
-      color: #ffcc00;
+      color: #ff9900;
     }
-
-    /* ---- TEXTAREA STYLING ---- */
     textarea {
       width: 100%;
-      height: 100px;
-      margin-top: 15px;
-      padding: 10px;
-      border-radius: 8px;
-      border: 1px solid #444;
-      background: #1e1e1e;
+      height: 80px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #2a2a2a;
       color: #e0e0e0;
+      padding: 8px;
       resize: vertical;
-    }
-    button {
-      margin-top: 15px;
-      padding: 12px 25px;
-      background: #007acc;
-      color: white;
-      border: none;
-      cursor: pointer;
-      border-radius: 8px;
-      font-size: 16px;
-      transition: background 0.3s;
-    }
-    button:hover {
-      background: #005f99;
+      font-family: 'Comfortaa', sans-serif;
+      font-size: 14px;
     }
     .review-list {
-      margin-top: 25px;
-      text-align: left;
+      margin-top: 20px;
     }
     .review-item {
-      background: #333;
-      padding: 15px;
+      background: #2a2a2a;
+      padding: 10px;
       margin-top: 10px;
-      border-radius: 8px;
+      border-radius: 6px;
     }
     .review-item strong {
       display: block;
       margin-bottom: 5px;
+      color: #ff9900;
     }
-    /* Modal styling for full-screen zoom */
+    /* Modal & magnifier */
     .modal {
       display: none;
       position: fixed;
@@ -197,7 +225,7 @@ label[for="rating"]:hover {
       top: 20px;
       right: 35px;
       color: #f1f1f1;
-      font-size: 40px;
+      font-size: 36px;
       font-weight: bold;
       cursor: pointer;
     }
@@ -206,266 +234,298 @@ label[for="rating"]:hover {
       color: #bbb;
       text-decoration: none;
     }
-    /* Magnifier styling */
     #magnifier {
       position: absolute;
-      border: 3px solid #fff;
+      border: 2px solid #ff9900;
       border-radius: 50%;
       cursor: none;
-      width: 350px;
-      height: 350px;
-      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+      width: 300px;
+      height: 300px;
       background-repeat: no-repeat;
       display: none;
       z-index: 1200;
       pointer-events: none;
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
     }
   </style>
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
-    <nav>
-      <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
-      <div class="nav-center">
-        <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
-        <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>        
+  <nav>
+    <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
+    <div class="nav-center">
+      <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
+      <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card-container">
+      <div class="card-art">
+        <img id="cardImage" src="" alt="Card Art" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';">
       </div>
-    </nav>
+      <div class="card-details">
+        <div class="card-title" id="cardTitle"></div>
+        
+        <div class="card-section">
+          <h3>Card types</h3>
+          <p id="cardType"></p>
+        </div>
+        <div class="card-section">
+          <h3>Oracle text</h3>
+          <p id="cardText"></p>
+        </div>
+        <div class="card-section">
+          <h3>Flavor text</h3>
+          <p id="cardFlavor"></p>
+        </div>
+        <div class="card-section">
+          <h3>Artist</h3>
+          <p id="cardArtist"></p>
+        </div>
+        
+        <button class="copy-btn" onclick="copyCardInfo()">Copy Card Info</button>
+      </div>
+    </div>
 
-<div class="container">
-  <h1 id="cardName"></h1>
-  <!-- Dynamically inserted card image and name -->
-<img id="cardImage" src="" alt="" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';">
-  
-  <!-- Review functionality -->
-  <label for="rating">Rate this card:</label>
-  <div class="rating" id="rating">
-    <span class="star" data-value="1">★</span>
-    <span class="star" data-value="2">★</span>
-    <span class="star" data-value="3">★</span>
-    <span class="star" data-value="4">★</span>
-    <span class="star" data-value="5">★</span>
+    <!-- Review Section -->
+    <label for="rating">Rate this card:</label>
+    <div class="rating" id="rating">
+      <span class="star" data-value="1">★</span>
+      <span class="star" data-value="2">★</span>
+      <span class="star" data-value="3">★</span>
+      <span class="star" data-value="4">★</span>
+      <span class="star" data-value="5">★</span>
+    </div>
+    <textarea id="comment" placeholder="Leave your review here..."></textarea>
+    <button class="submit-review" onclick="submitReview()">Submit</button>
+    <div class="review-list" id="reviewList"></div>
   </div>
-  <textarea id="comment" placeholder="Leave your review here..."></textarea>
-  <button onclick="submitReview()">Submit</button>
-  <div class="review-list" id="reviewList"></div>
-</div>
 
-<!-- Modal for full-screen zoom -->
-<div id="imageModal" class="modal">
-  <span class="close">&times;</span>
-  <img class="modal-content" id="modalImg">
-</div>
+  <!-- Modal for full-screen zoom -->
+  <div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modalImg">
+  </div>
+  
+  <!-- Magnifier element -->
+  <div id="magnifier"></div>
 
-<!-- Magnifier element -->
-<div id="magnifier"></div>
-
-<script>
-  // Declare a global variable for the current card's information.
-  let cardInfo;
-
-  // Helper function to get query parameters.
-  function getQueryParameter(name) {
-    const params = new URLSearchParams(window.location.search);
-    return params.get(name);
-  }
-
-  // Fetch card data from blb.json
-  fetch('blb.json')
-    .then(response => response.json())
-    .then(data => {
-      // If the JSON has a nested structure (like data.cards), adjust accordingly.
-      if (data.data && Array.isArray(data.data.cards)) {
-        data = data.data.cards;
-      } else if (!Array.isArray(data)) {
-        data = [data];
-      }
+  <script>
+    document.addEventListener("DOMContentLoaded", function() {
+      console.log("Script loaded!");
+      let cardInfo;
       
-      // Read the 'card' query parameter (e.g., ?card=Air%20Response%20Unit)
-      const cardNameParam = getQueryParameter("card");
-      // Find the matching card using the "Name" property.
-      cardInfo = data.find(card => card.name === cardNameParam);
-      if (!cardInfo) {
-        // If not found, default to the first card.
-        cardInfo = data[0];
+      // Replace mana symbols with images (including digits 1-9).
+      function parseManaCost(manaCost) {
+        if (!manaCost) return '';
+        return manaCost
+          .replace(/\{1\}/g, '<img src="../Pictures/1.png" alt="1" class="mana-symbol">')
+          .replace(/\{2\}/g, '<img src="../Pictures/2.png" alt="2" class="mana-symbol">')
+          .replace(/\{3\}/g, '<img src="../Pictures/3.png" alt="3" class="mana-symbol">')
+          .replace(/\{4\}/g, '<img src="../Pictures/4.png" alt="4" class="mana-symbol">')
+          .replace(/\{5\}/g, '<img src="../Pictures/5.png" alt="5" class="mana-symbol">')
+          .replace(/\{6\}/g, '<img src="../Pictures/6.png" alt="6" class="mana-symbol">')
+          .replace(/\{7\}/g, '<img src="../Pictures/7.png" alt="7" class="mana-symbol">')
+          .replace(/\{8\}/g, '<img src="../Pictures/8.png" alt="8" class="mana-symbol">')
+          .replace(/\{9\}/g, '<img src="../Pictures/9.png" alt="9" class="mana-symbol">')
+          .replace(/\{W\}/g, '<img src="../Pictures/White.png" alt="White" class="mana-symbol">')
+          .replace(/\{U\}/g, '<img src="../Pictures/Blue.png" alt="Blue" class="mana-symbol">')
+          .replace(/\{B\}/g, '<img src="../Pictures/Black.png" alt="Black" class="mana-symbol">')
+          .replace(/\{R\}/g, '<img src="../Pictures/Red.png" alt="Red" class="mana-symbol">')
+          .replace(/\{G\}/g, '<img src="../Pictures/Green.png" alt="Green" class="mana-symbol">');
       }
-      
-      // Compute the image path by replacing spaces, commas, dashes, and apostrophes with underscores.
-      const cardPicture = "../Pictures/" + cardInfo.name.replace(/[\s,\'\-]/g, '_') + ".png";
-      
-      // Update the page with the card's image and name.
-      document.getElementById("cardImage").src = cardPicture;
-      document.getElementById("cardImage").alt = cardInfo.name;
-      document.getElementById("cardName").textContent = cardInfo.name;
-      
-      // Now that cardInfo is defined, load reviews.
-      loadReviews();
-    })
-    .catch(error => console.error("Error loading card data:", error));
-    
-  // Initialize Supabase
-  const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
-  const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
-  const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
 
-  // Star rating functionality
-  let selectedRating = 0;
-  const stars = document.querySelectorAll('.star');
-  
-  function updateStars(rating, className) {
-    stars.forEach(star => {
-      if (parseInt(star.getAttribute('data-value')) <= rating) {
-        star.classList.add(className);
-      } else {
-        star.classList.remove(className);
+      // Helper to get query parameter
+      function getQueryParameter(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
       }
-    });
-  }
-  
-  function updateSelectedStars() {
-    stars.forEach(star => {
-      if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
-        star.classList.add('selected');
-      } else {
-        star.classList.remove('selected');
+
+      // Fetch card data from blb.json in the same directory
+      fetch('./blb.json')
+        .then(response => response.json())
+        .then(data => {
+          if (data.data && Array.isArray(data.data.cards)) {
+            data = data.data.cards;
+          } else if (!Array.isArray(data)) {
+            data = [data];
+          }
+          const cardNameParam = getQueryParameter("card");
+          cardInfo = data.find(card => card.name === cardNameParam);
+          if (!cardInfo) {
+            cardInfo = data[0];
+          }
+          // Construct the image path. Adjust if necessary.
+          const cardPicture = "../Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
+          
+          document.getElementById("cardImage").src = cardPicture;
+          document.getElementById("cardImage").alt = cardInfo.name;
+          
+          // Insert card data
+          const titleEl = document.getElementById("cardTitle");
+          titleEl.innerHTML = cardInfo.name + " - " + parseManaCost(cardInfo.manaCost);
+          
+          document.getElementById("cardType").textContent = cardInfo.type || "";
+          document.getElementById("cardText").textContent = cardInfo.text || "";
+          document.getElementById("cardFlavor").textContent = cardInfo.flavorText || "";
+          document.getElementById("cardArtist").textContent = "Artist: " + (cardInfo.artist || "");
+          
+          // Load existing reviews
+          loadReviews();
+        })
+        .catch(error => console.error("Error loading card data:", error));
+
+      // Copy card info
+      window.copyCardInfo = function() {
+        const info = (cardInfo.name || "") + " - " + (cardInfo.manaCost || "") + "\n" +
+                     "Type: " + (cardInfo.type || "") + "\n" +
+                     "Text: " + (cardInfo.text || "") + "\n" +
+                     "Flavor: " + (cardInfo.flavorText || "") + "\n" +
+                     "Artist: " + (cardInfo.artist || "");
+        navigator.clipboard.writeText(info)
+          .then(() => alert("Card info copied to clipboard!"))
+          .catch(err => alert("Error copying card info: " + err));
+      };
+
+      // Supabase init
+      const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
+      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
+      const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+      // Star rating
+      let selectedRating = 0;
+      const stars = document.querySelectorAll('.star');
+      function updateStars(rating, className) {
+        stars.forEach(star => {
+          if (parseInt(star.getAttribute('data-value')) <= rating) {
+            star.classList.add(className);
+          } else {
+            star.classList.remove(className);
+          }
+        });
       }
+      function updateSelectedStars() {
+        stars.forEach(star => {
+          if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
+            star.classList.add('selected');
+          } else {
+            star.classList.remove('selected');
+          }
+        });
+      }
+      stars.forEach(star => {
+        star.addEventListener('mouseover', function() {
+          const rating = parseInt(this.getAttribute('data-value'));
+          updateStars(rating, 'hovered');
+        });
+        star.addEventListener('mouseout', function() {
+          stars.forEach(s => s.classList.remove('hovered'));
+          updateSelectedStars();
+        });
+        star.addEventListener('click', function() {
+          selectedRating = parseInt(this.getAttribute('data-value'));
+          updateSelectedStars();
+        });
+      });
+
+      // Submit review
+      window.submitReview = async function() {
+        const comment = document.getElementById("comment").value.trim();
+        if (!selectedRating || !comment) {
+          alert("Please provide a rating and a comment.");
+          return;
+        }
+        const review = {
+          card: cardInfo.name,
+          rating: selectedRating,
+          comment: comment
+        };
+        const { data, error } = await supabaseClient
+          .from('reviews')
+          .insert([review]);
+        if (error) {
+          console.error("Error submitting review:", error);
+          alert("There was an error submitting your review.");
+          return;
+        }
+        selectedRating = 0;
+        updateSelectedStars();
+        document.getElementById("comment").value = "";
+        loadReviews();
+      };
+
+      // Load reviews
+      async function loadReviews() {
+        if (!cardInfo) return;
+        const reviewList = document.getElementById("reviewList");
+        reviewList.innerHTML = "";
+        const { data: reviews, error } = await supabaseClient
+          .from('reviews')
+          .select('*')
+          .eq('card', cardInfo.name)
+          .order('created_at', { ascending: false });
+        if (error) {
+          console.error("Error loading reviews:", error);
+          return;
+        }
+        reviews.forEach(review => {
+          const div = document.createElement("div");
+          div.className = "review-item";
+          div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
+          reviewList.appendChild(div);
+        });
+      }
+
+      // Modal for full-screen zoom
+      const modal = document.getElementById("imageModal");
+      const modalImg = document.getElementById("modalImg");
+      const closeBtn = document.querySelector(".close");
+      const cardImage = document.getElementById("cardImage");
+
+      cardImage.addEventListener('click', function() {
+        modal.style.display = "block";
+        modalImg.src = this.src;
+      });
+      closeBtn.addEventListener('click', function() {
+        modal.style.display = "none";
+      });
+      modal.addEventListener('click', function(e) {
+        if (e.target === modal) {
+          modal.style.display = "none";
+        }
+      });
+
+      // Magnifier
+      const magnifier = document.getElementById("magnifier");
+      const zoomLevel = 2;
+      const magnifierSize = 300;
+      cardImage.addEventListener("mousemove", function(e) {
+        cardImage.style.cursor = "none";
+        const rect = cardImage.getBoundingClientRect();
+        const x = e.clientX - rect.left;
+        const y = e.clientY - rect.top;
+
+        magnifier.style.display = "block";
+        const magnifierX = e.pageX - magnifierSize / 2;
+        const magnifierY = e.pageY - magnifierSize / 2;
+        magnifier.style.left = magnifierX + "px";
+        magnifier.style.top = magnifierY + "px";
+        magnifier.style.backgroundImage = "url(" + cardImage.src + ")";
+        const imgWidth = cardImage.clientWidth;
+        const imgHeight = cardImage.clientHeight;
+        magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
+
+        const bgX = -((x * zoomLevel) - magnifierSize / 2);
+        const bgY = -((y * zoomLevel) - magnifierSize / 2);
+        magnifier.style.backgroundPosition = bgX + "px " + bgY + "px";
+      });
+      cardImage.addEventListener("mouseleave", function() {
+        magnifier.style.display = "none";
+        cardImage.style.cursor = "zoom-in";
+      });
     });
-  }
-  
-  stars.forEach(star => {
-    star.addEventListener('mouseover', function() {
-      const rating = parseInt(this.getAttribute('data-value'));
-      updateStars(rating, 'hovered');
-    });
-    
-    star.addEventListener('mouseout', function() {
-      stars.forEach(s => s.classList.remove('hovered'));
-      updateSelectedStars();
-    });
-    
-    star.addEventListener('click', function() {
-      selectedRating = parseInt(this.getAttribute('data-value'));
-      updateSelectedStars();
-      console.log("Star clicked, rating set to:", selectedRating);
-    });
-  });
-  
-  // Submit review functionality (ensure this function is async)
-  async function submitReview() {
-    console.log("submitReview called. selectedRating:", selectedRating);
-    const comment = document.getElementById("comment").value.trim();
-    if (!selectedRating || !comment) {
-      alert("Please provide a rating and a comment.");
-      return;
-    }
-    
-    // Build the review object (include the card name to associate the review)
-const review = {
-  card: cardInfo.name,
-  rating: selectedRating,
-  comment: comment
-};
-    
-    // Insert the review into the 'reviews' table in Supabase.
-    const { data, error } = await supabaseClient
-      .from('reviews')
-      .insert([review]);
-    
-    if (error) {
-      console.error("Error submitting review:", error);
-      alert("There was an error submitting your review.");
-      return;
-    }
-    
-    // Reset rating and comment input.
-    selectedRating = 0;
-    updateSelectedStars();
-    document.getElementById("comment").value = "";
-    
-    // Reload reviews.
-    loadReviews();
-  }
-  
-  // Load reviews from Supabase for the current card.
-  async function loadReviews() {
-    // Ensure cardInfo is loaded before attempting to load reviews.
-    if (!cardInfo) return;
-    
-    const reviewList = document.getElementById("reviewList");
-    reviewList.innerHTML = "";
-    
-    const { data: reviews, error } = await supabaseClient
-      .from('reviews')
-      .select('*')
-      .eq('card', cardInfo.name)
-      .order('created_at', { ascending: false });
-    
-    if (error) {
-      console.error("Error loading reviews:", error);
-      return;
-    }
-    
-    reviews.forEach(review => {
-      const div = document.createElement("div");
-      div.className = "review-item";
-      div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
-      reviewList.appendChild(div);
-    });
-  }
-  
-  // Modal functionality for full-screen zoom.
-  const modal = document.getElementById("imageModal");
-  const modalImg = document.getElementById("modalImg");
-  const closeBtn = document.querySelector(".close");
-  const cardImage = document.getElementById("cardImage");
-  
-  cardImage.addEventListener('click', function() {
-    modal.style.display = "block";
-    modalImg.src = this.src;
-  });
-  
-  closeBtn.addEventListener('click', function() {
-    modal.style.display = "none";
-  });
-  
-  modal.addEventListener('click', function(e) {
-    if (e.target === modal) {
-      modal.style.display = "none";
-    }
-  });
-  
-  // Magnifying glass effect.
-  const magnifier = document.getElementById("magnifier");
-  const zoomLevel = 2;
-  const magnifierSize = 150;
-  
-  cardImage.addEventListener("mousemove", function(e) {
-    cardImage.style.cursor = "none";
-    const rect = cardImage.getBoundingClientRect();
-    const x = e.clientX - rect.left;
-    const y = e.clientY - rect.top;
-    
-    magnifier.style.display = "block";
-    const magnifierX = e.pageX - magnifierSize / 2;
-    const magnifierY = e.pageY - magnifierSize / 2;
-    magnifier.style.left = magnifierX + "px";
-    magnifier.style.top = magnifierY + "px";
-    
-    magnifier.style.backgroundImage = `url(${cardImage.src})`;
-    const imgWidth = cardImage.clientWidth;
-    const imgHeight = cardImage.clientHeight;
-    magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
-    
-    const bgX = -((x * zoomLevel) - magnifierSize / 2);
-    const bgY = -((y * zoomLevel) - magnifierSize / 2);
-    magnifier.style.backgroundPosition = `${bgX}px ${bgY}px`;
-  });
-  
-  cardImage.addEventListener("mouseleave", function() {
-    magnifier.style.display = "none";
-    cardImage.style.cursor = "zoom-in";
-  });
-</script>
+  </script>
 </body>
 </html>
