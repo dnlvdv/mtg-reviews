@@ -147,4 +147,382 @@
     button.submit-review:hover {
       background: #52e6c3;
     }
-    /* Review stylin
+    /* Review styling */
+    label[for="rating"] {
+      display: block;
+      text-align: center;
+      font-size: 1.1rem;
+      color: #64ffda;
+      margin-top: 10px;
+      margin-bottom: 8px;
+    }
+    .rating {
+      display: flex;
+      justify-content: center;
+      gap: 5px;
+      margin-bottom: 10px;
+    }
+    .star {
+      font-size: 24px; 
+      cursor: pointer;
+      color: #555;
+      transition: color 0.2s, transform 0.2s;
+    }
+    .star:hover {
+      transform: scale(1.1);
+    }
+    .star.hovered,
+    .star.selected {
+      color: #64ffda;
+    }
+    textarea {
+      width: 100%;
+      height: 80px;
+      border-radius: 6px;
+      border: 1px solid #333;
+      background: #2a2a2a;
+      color: #e0e0e0;
+      padding: 8px;
+      resize: vertical;
+      font-family: 'Comfortaa', sans-serif;
+      font-size: 14px;
+    }
+    .review-list {
+      margin-top: 20px;
+    }
+    .review-item {
+      background: #2a2a2a;
+      padding: 10px;
+      margin-top: 10px;
+      border-radius: 6px;
+    }
+    .review-item strong {
+      display: block;
+      margin-bottom: 5px;
+      color: #64ffda;
+    }
+    /* Modal & magnifier */
+    .modal {
+      display: none;
+      position: fixed;
+      z-index: 1000;
+      left: 0;
+      top: 0;
+      width: 100%;
+      height: 100%;
+      overflow: auto;
+      background-color: rgba(0, 0, 0, 0.8);
+    }
+    .modal-content {
+      margin: auto;
+      display: block;
+      max-width: 90%;
+      max-height: 90%;
+      border-radius: 10px;
+    }
+    .close {
+      position: absolute;
+      top: 20px;
+      right: 35px;
+      color: #f1f1f1;
+      font-size: 36px;
+      font-weight: bold;
+      cursor: pointer;
+    }
+    .close:hover,
+    .close:focus {
+      color: #bbb;
+      text-decoration: none;
+    }
+    #magnifier {
+      position: absolute;
+      border: 2px solid #64ffda;
+      border-radius: 50%;
+      cursor: none;
+      width: 300px;
+      height: 300px;
+      background-repeat: no-repeat;
+      display: none;
+      z-index: 1200;
+      pointer-events: none;
+      box-shadow: 0 0 5px rgba(0,0,0,0.5);
+    }
+  </style>
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+</head>
+<body>
+
+  <nav>
+    <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
+    <div class="nav-center">
+      <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
+      <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>
+    </div>
+  </nav>
+
+  <div class="container">
+    <div class="card-container">
+      <div class="card-art">
+        <img id="cardImage" src="" alt="Card Art" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';">
+      </div>
+      <div class="card-details">
+        <div class="card-title" id="cardTitle"></div>
+        
+        <div class="card-section">
+          <h3>Type</h3>
+          <p id="cardType"></p>
+        </div>
+        <div class="card-section">
+          <h3>Text</h3>
+          <p id="cardText"></p>
+        </div>
+        <div class="card-section">
+          <h3>Flavor</h3>
+          <p id="cardFlavor"></p>
+        </div>
+        <div class="card-section">
+          <h3>Artist</h3>
+          <p id="cardArtist"></p>
+        </div>
+        
+        <button class="copy-btn" onclick="copyCardInfo()">Copy Card Info</button>
+      </div>
+    </div>
+
+    <!-- Review Section -->
+    <label for="rating">Rate this card:</label>
+    <div class="rating" id="rating">
+      <span class="star" data-value="1">★</span>
+      <span class="star" data-value="2">★</span>
+      <span class="star" data-value="3">★</span>
+      <span class="star" data-value="4">★</span>
+      <span class="star" data-value="5">★</span>
+    </div>
+    <textarea id="comment" placeholder="Leave your review here..."></textarea>
+    <button class="submit-review" onclick="submitReview()">Submit</button>
+    <div class="review-list" id="reviewList"></div>
+  </div>
+
+  <!-- Modal for full-screen zoom -->
+  <div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modalImg">
+  </div>
+  
+  <!-- Magnifier element -->
+  <div id="magnifier"></div>
+
+  <script>
+    let cardInfo;
+
+    // Replace mana symbols with images (including digits 1-9).
+    function parseManaCost(manaCost) {
+      if (!manaCost) return '';
+      return manaCost
+        // Replace digits {1}..{9}
+        .replace(/{1}/g, '<img src="../Pictures/1.png" alt="1" class="mana-symbol">')
+        .replace(/{2}/g, '<img src="../Pictures/2.png" alt="2" class="mana-symbol">')
+        .replace(/{3}/g, '<img src="../Pictures/3.png" alt="3" class="mana-symbol">')
+        .replace(/{4}/g, '<img src="../Pictures/4.png" alt="4" class="mana-symbol">')
+        .replace(/{5}/g, '<img src="../Pictures/5.png" alt="5" class="mana-symbol">')
+        .replace(/{6}/g, '<img src="../Pictures/6.png" alt="6" class="mana-symbol">')
+        .replace(/{7}/g, '<img src="../Pictures/7.png" alt="7" class="mana-symbol">')
+        .replace(/{8}/g, '<img src="../Pictures/8.png" alt="8" class="mana-symbol">')
+        .replace(/{9}/g, '<img src="../Pictures/9.png" alt="9" class="mana-symbol">')
+        // Replace color letters
+        .replace(/{W}/g, '<img src="../Pictures/White.png" alt="White" class="mana-symbol">')
+        .replace(/{U}/g, '<img src="../Pictures/Blue.png" alt="Blue" class="mana-symbol">')
+        .replace(/{B}/g, '<img src="../Pictures/Black.png" alt="Black" class="mana-symbol">')
+        .replace(/{R}/g, '<img src="../Pictures/Red.png" alt="Red" class="mana-symbol">')
+        .replace(/{G}/g, '<img src="../Pictures/Green.png" alt="Green" class="mana-symbol">');
+    }
+
+    // Helper to get query parameter
+    function getQueryParameter(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
+    // Fetch card data
+    fetch('blb.json')
+      .then(response => response.json())
+      .then(data => {
+        if (data.data && Array.isArray(data.data.cards)) {
+          data = data.data.cards;
+        } else if (!Array.isArray(data)) {
+          data = [data];
+        }
+        const cardNameParam = getQueryParameter("card");
+        cardInfo = data.find(card => card.name === cardNameParam);
+        if (!cardInfo) {
+          cardInfo = data[0];
+        }
+        // Build image path
+        const cardPicture = "../Pictures/" + cardInfo.name.replace(/[\s,'-]/g, '_') + ".png";
+        document.getElementById("cardImage").src = cardPicture;
+        document.getElementById("cardImage").alt = cardInfo.name;
+        
+        // Insert card data
+        const titleEl = document.getElementById("cardTitle");
+        titleEl.innerHTML = cardInfo.name + " - " + parseManaCost(cardInfo.manaCost);
+        
+        document.getElementById("cardType").textContent = cardInfo.type || "";
+        document.getElementById("cardText").textContent = cardInfo.text || "";
+        document.getElementById("cardFlavor").textContent = cardInfo.flavorText || "";
+        document.getElementById("cardArtist").textContent = "Artist: " + (cardInfo.artist || "");
+        
+        loadReviews();
+      })
+      .catch(error => console.error("Error loading card data:", error));
+
+    // Copy card info
+    function copyCardInfo() {
+      const info = (cardInfo.name || "") + " - " + (cardInfo.manaCost || "") + "\n" +
+                   "Type: " + (cardInfo.type || "") + "\n" +
+                   "Text: " + (cardInfo.text || "") + "\n" +
+                   "Flavor: " + (cardInfo.flavorText || "") + "\n" +
+                   "Artist: " + (cardInfo.artist || "");
+      navigator.clipboard.writeText(info)
+        .then(() => alert("Card info copied to clipboard!"))
+        .catch(err => alert("Error copying card info: " + err));
+    }
+
+    // Supabase init
+    const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
+    const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
+    const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
+
+    // Star rating
+    let selectedRating = 0;
+    const stars = document.querySelectorAll('.star');
+    function updateStars(rating, className) {
+      stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-value')) <= rating) {
+          star.classList.add(className);
+        } else {
+          star.classList.remove(className);
+        }
+      });
+    }
+    function updateSelectedStars() {
+      stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
+          star.classList.add('selected');
+        } else {
+          star.classList.remove('selected');
+        }
+      });
+    }
+    stars.forEach(star => {
+      star.addEventListener('mouseover', function() {
+        const rating = parseInt(this.getAttribute('data-value'));
+        updateStars(rating, 'hovered');
+      });
+      star.addEventListener('mouseout', function() {
+        stars.forEach(s => s.classList.remove('hovered'));
+        updateSelectedStars();
+      });
+      star.addEventListener('click', function() {
+        selectedRating = parseInt(this.getAttribute('data-value'));
+        updateSelectedStars();
+      });
+    });
+
+    // Submit review
+    async function submitReview() {
+      const comment = document.getElementById("comment").value.trim();
+      if (!selectedRating || !comment) {
+        alert("Please provide a rating and a comment.");
+        return;
+      }
+      const review = {
+        card: cardInfo.name,
+        rating: selectedRating,
+        comment: comment
+      };
+      const { data, error } = await supabaseClient
+        .from('reviews')
+        .insert([review]);
+      if (error) {
+        console.error("Error submitting review:", error);
+        alert("There was an error submitting your review.");
+        return;
+      }
+      selectedRating = 0;
+      updateSelectedStars();
+      document.getElementById("comment").value = "";
+      loadReviews();
+    }
+
+    // Load reviews
+    async function loadReviews() {
+      if (!cardInfo) return;
+      const reviewList = document.getElementById("reviewList");
+      reviewList.innerHTML = "";
+      const { data: reviews, error } = await supabaseClient
+        .from('reviews')
+        .select('*')
+        .eq('card', cardInfo.name)
+        .order('created_at', { ascending: false });
+      if (error) {
+        console.error("Error loading reviews:", error);
+        return;
+      }
+      reviews.forEach(review => {
+        const div = document.createElement("div");
+        div.className = "review-item";
+        div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
+        reviewList.appendChild(div);
+      });
+    }
+
+    // Modal for full-screen zoom
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImg");
+    const closeBtn = document.querySelector(".close");
+    const cardImage = document.getElementById("cardImage");
+
+    cardImage.addEventListener('click', function() {
+      modal.style.display = "block";
+      modalImg.src = this.src;
+    });
+    closeBtn.addEventListener('click', function() {
+      modal.style.display = "none";
+    });
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+
+    // Magnifier
+    const magnifier = document.getElementById("magnifier");
+    const zoomLevel = 2;
+    const magnifierSize = 300;
+    cardImage.addEventListener("mousemove", function(e) {
+      cardImage.style.cursor = "none";
+      const rect = cardImage.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+
+      magnifier.style.display = "block";
+      const magnifierX = e.pageX - magnifierSize / 2;
+      const magnifierY = e.pageY - magnifierSize / 2;
+      magnifier.style.left = magnifierX + "px";
+      magnifier.style.top = magnifierY + "px";
+      magnifier.style.backgroundImage = "url(" + cardImage.src + ")";
+      const imgWidth = cardImage.clientWidth;
+      const imgHeight = cardImage.clientHeight;
+      magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
+
+      const bgX = -((x * zoomLevel) - magnifierSize / 2);
+      const bgY = -((y * zoomLevel) - magnifierSize / 2);
+      magnifier.style.backgroundPosition = bgX + "px " + bgY + "px";
+    });
+    cardImage.addEventListener("mouseleave", function() {
+      magnifier.style.display = "none";
+      cardImage.style.cursor = "zoom-in";
+    });
+  </script>
+</body>
+</html>
