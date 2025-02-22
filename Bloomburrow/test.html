@@ -46,7 +46,7 @@
       transition: background 0.3s;
     }
     nav a:hover {
-      background: #64ffda;
+      background: #ff9900;
       color: #1a1a1a;
     }
     .home-link {
@@ -58,7 +58,7 @@
     }
     /* Container */
     .container {
-      max-width: 1000px; /* narrower container */
+      max-width: 1000px; /* container width */
       width: 100%;
       background: #1f1f1f;
       margin-top: 60px; /* leaves space for nav */
@@ -96,7 +96,7 @@
     .card-title {
       font-size: 1.5rem;
       font-weight: 700;
-      color: #64ffda; /* accent color for the card title */
+      color: #ff9900; /* accent color for the card title */
     }
     /* Card sections */
     .card-section {
@@ -108,7 +108,7 @@
     .card-section h3 {
       margin-bottom: 4px;
       font-size: 1rem;
-      color: #64ffda;
+      color: #ff9900;
       font-weight: 700;
     }
     /* Mana symbols */
@@ -120,7 +120,7 @@
     }
     /* Buttons */
     .copy-btn {
-      background: #64ffda;
+      background: #ff9900;
       color: #121212;
       border: none;
       cursor: pointer;
@@ -131,10 +131,10 @@
       align-self: flex-start;
     }
     .copy-btn:hover {
-      background: #52e6c3;
+      background: #ff7700;
     }
     button.submit-review {
-      background: #64ffda;
+      background: #ff9900;
       color: #121212;
       border: none;
       cursor: pointer;
@@ -145,14 +145,14 @@
       transition: background 0.3s;
     }
     button.submit-review:hover {
-      background: #52e6c3;
+      background: #ff7700;
     }
     /* Review styling */
     label[for="rating"] {
       display: block;
       text-align: center;
       font-size: 1.1rem;
-      color: #64ffda;
+      color: #ff9900;
       margin-top: 10px;
       margin-bottom: 8px;
     }
@@ -173,7 +173,7 @@
     }
     .star.hovered,
     .star.selected {
-      color: #64ffda;
+      color: #ff9900;
     }
     textarea {
       width: 100%;
@@ -199,7 +199,7 @@
     .review-item strong {
       display: block;
       margin-bottom: 5px;
-      color: #64ffda;
+      color: #ff9900;
     }
     /* Modal & magnifier */
     .modal {
@@ -236,7 +236,7 @@
     }
     #magnifier {
       position: absolute;
-      border: 2px solid #64ffda;
+      border: 2px solid #ff9900;
       border-radius: 50%;
       cursor: none;
       width: 300px;
@@ -344,7 +344,7 @@
     }
 
     // Fetch card data
-    fetch('blb.json')
+    fetch('blb.json')  // <-- Adjust path if needed (../blb.json, etc.)
       .then(response => response.json())
       .then(data => {
         if (data.data && Array.isArray(data.data.cards)) {
@@ -355,6 +355,7 @@
         const cardNameParam = getQueryParameter("card");
         cardInfo = data.find(card => card.name === cardNameParam);
         if (!cardInfo) {
+          // If no match, use the first card
           cardInfo = data[0];
         }
         // Build image path
@@ -371,6 +372,7 @@
         document.getElementById("cardFlavor").textContent = cardInfo.flavorText || "";
         document.getElementById("cardArtist").textContent = "Artist: " + (cardInfo.artist || "");
         
+        // Load existing reviews
         loadReviews();
       })
       .catch(error => console.error("Error loading card data:", error));
