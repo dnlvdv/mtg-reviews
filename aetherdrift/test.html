@@ -1,0 +1,268 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>MTG Card Review</title>
+  <!-- Modern Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  <style>
+    /* === Your existing CSS omitted for brevity === */
+  </style>
+</head>
+<body>
+
+  <!-- === NAVBAR === -->
+  <nav>
+    <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
+    <div class="nav-center">
+      <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
+      <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>
+    </div>
+  </nav>
+
+  <!-- === CONTAINER === -->
+  <div class="container">
+    <h1 id="cardName"></h1>
+    <img id="cardImage" src="" alt="" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';">
+
+    <!-- Rating + Comment UI (unchanged) -->
+    <label for="rating">Rate this card:</label>
+    <div class="rating" id="rating">
+      <span class="star" data-value="1">★</span>
+      <span class="star" data-value="2">★</span>
+      <span class="star" data-value="3">★</span>
+      <span class="star" data-value="4">★</span>
+      <span class="star" data-value="5">★</span>
+    </div>
+    <textarea id="comment" placeholder="Leave your review here..."></textarea>
+    <button onclick="submitReview()">Submit</button>
+    <div class="review-list" id="reviewList"></div>
+
+    <!-- OPTIONAL: Other Versions Section -->
+    <div id="otherVersions" style="margin-top: 30px;"></div>
+  </div>
+
+  <!-- === MODAL & MAGNIFIER (unchanged) === -->
+  <div id="imageModal" class="modal">
+    <span class="close">&times;</span>
+    <img class="modal-content" id="modalImg">
+  </div>
+  <div id="magnifier"></div>
+
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <script>
+    /* ======== 1) GET URL PARAM FOR CARD NAME  ======== */
+    function getQueryParameter(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+    const cardNameParam = getQueryParameter("card");
+
+    /* ======== 2) FETCH THE JSON (DFT.json)  ======== */
+    fetch('DFT.json')
+      .then(response => response.json())
+      .then(data => {
+        // Adjust if your JSON has nested data, e.g., data.data.cards
+        if (data.data && Array.isArray(data.data.cards)) {
+          data = data.data.cards;
+        } else if (!Array.isArray(data)) {
+          data = [data];
+        }
+
+        // 2a) Filter for all cards matching the name
+        const matches = data.filter(card => card.name === cardNameParam);
+
+        // 2b) If no matches, fallback or show error
+        if (!matches || matches.length === 0) {
+          document.getElementById("cardName").textContent = "Card not found.";
+          return;
+        }
+
+        // 2c) If there's at least one match, use the first
+        const cardInfo = matches[0];
+
+        // 2d) If multiple versions, we can list them
+        if (matches.length > 1) {
+          showOtherVersions(matches.slice(1)); 
+          // The first is displayed, the rest are "other versions"
+        }
+
+        // Now fill in the page with the first match
+        fillCardData(cardInfo);
+
+        // Load reviews (Supabase)
+        loadReviews(cardInfo);
+      })
+      .catch(error => console.error("Error loading card data:", error));
+
+    /* ======== 3) FILL CARD DATA ON THE PAGE ======== */
+    function fillCardData(card) {
+      const cardName = document.getElementById("cardName");
+      const cardImage = document.getElementById("cardImage");
+
+      // Convert the card name to a file name
+      const cardPicture = "../Pictures/" + card.name.replace(/[\s,'-]/g, "_") + ".png";
+
+      cardName.textContent = card.name;
+      cardImage.src = cardPicture;
+      cardImage.alt = card.name;
+    }
+
+    /* ======== 4) OPTIONAL: SHOW OTHER VERSIONS ======== */
+    function showOtherVersions(versions) {
+      const otherDiv = document.getElementById("otherVersions");
+      if (!versions.length) return;
+
+      otherDiv.innerHTML = "<h3>Other Versions:</h3>";
+      versions.forEach((v, i) => {
+        const link = document.createElement("a");
+        link.style.display = "inline-block";
+        link.style.marginRight = "10px";
+        link.style.color = "#ff6600";
+        link.href = "?card=" + encodeURIComponent(v.name);
+        link.textContent = v.setCode 
+          ? v.name + " (" + v.setCode + ")" 
+          : v.name + " (Alternate " + (i + 1) + ")";
+        otherDiv.appendChild(link);
+      });
+    }
+
+    /* ======== 5) SUPABASE & REVIEWS ======== */
+    const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
+    const supabaseKey = 'YOUR_PUBLIC_ANON_KEY';
+    const supabaseClient = supabase.createClient(supabaseUrl, supabaseKey);
+
+    let selectedRating = 0;
+    const stars = document.querySelectorAll('.star');
+
+    // Star hover/click logic (unchanged)
+    function updateStars(rating, className) {
+      stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-value')) <= rating) {
+          star.classList.add(className);
+        } else {
+          star.classList.remove(className);
+        }
+      });
+    }
+    function updateSelectedStars() {
+      stars.forEach(star => {
+        if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
+          star.classList.add('selected');
+        } else {
+          star.classList.remove('selected');
+        }
+      });
+    }
+    stars.forEach(star => {
+      star.addEventListener('mouseover', function() {
+        const rating = parseInt(this.getAttribute('data-value'));
+        updateStars(rating, 'hovered');
+      });
+      star.addEventListener('mouseout', function() {
+        stars.forEach(s => s.classList.remove('hovered'));
+        updateSelectedStars();
+      });
+      star.addEventListener('click', function() {
+        selectedRating = parseInt(this.getAttribute('data-value'));
+        updateSelectedStars();
+      });
+    });
+
+    // Submit review
+    async function submitReview() {
+      const comment = document.getElementById("comment").value.trim();
+      if (!selectedRating || !comment) {
+        alert("Please provide a rating and a comment.");
+        return;
+      }
+
+      // Insert into supabase
+      const { data, error } = await supabaseClient
+        .from('reviews')
+        .insert([{ card: document.getElementById("cardName").textContent, rating: selectedRating, comment }]);
+      if (error) {
+        console.error("Error submitting review:", error);
+        alert("There was an error submitting your review.");
+        return;
+      }
+
+      selectedRating = 0;
+      updateSelectedStars();
+      document.getElementById("comment").value = "";
+      loadReviews({ name: document.getElementById("cardName").textContent });
+    }
+
+    // Load reviews
+    async function loadReviews(card) {
+      if (!card || !card.name) return;
+      const reviewList = document.getElementById("reviewList");
+      reviewList.innerHTML = "";
+
+      const { data: reviews, error } = await supabaseClient
+        .from('reviews')
+        .select('*')
+        .eq('card', card.name)
+        .order('created_at', { ascending: false });
+
+      if (error) {
+        console.error("Error loading reviews:", error);
+        return;
+      }
+      reviews.forEach(review => {
+        const div = document.createElement("div");
+        div.className = "review-item";
+        div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
+        reviewList.appendChild(div);
+      });
+    }
+
+    /* ======== 6) MODAL + MAGNIFIER (unchanged) ======== */
+    const modal = document.getElementById("imageModal");
+    const modalImg = document.getElementById("modalImg");
+    const closeBtn = document.querySelector(".close");
+    const cardImage = document.getElementById("cardImage");
+
+    cardImage.addEventListener('click', function() {
+      modal.style.display = "block";
+      modalImg.src = this.src;
+    });
+    closeBtn.addEventListener('click', function() {
+      modal.style.display = "none";
+    });
+    modal.addEventListener('click', function(e) {
+      if (e.target === modal) {
+        modal.style.display = "none";
+      }
+    });
+
+    const magnifier = document.getElementById("magnifier");
+    const zoomLevel = 2;
+    const magnifierSize = 150;
+
+    cardImage.addEventListener("mousemove", function(e) {
+      cardImage.style.cursor = "none";
+      const rect = cardImage.getBoundingClientRect();
+      const x = e.clientX - rect.left;
+      const y = e.clientY - rect.top;
+      magnifier.style.display = "block";
+      const magnifierX = e.pageX - magnifierSize / 2;
+      const magnifierY = e.pageY - magnifierSize / 2;
+      magnifier.style.left = magnifierX + "px";
+      magnifier.style.top = magnifierY + "px";
+      magnifier.style.backgroundImage = `url(${cardImage.src})`;
+      const imgWidth = cardImage.clientWidth;
+      const imgHeight = cardImage.clientHeight;
+      magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
+      const bgX = -((x * zoomLevel) - magnifierSize / 2);
+      const bgY = -((y * zoomLevel) - magnifierSize / 2);
+      magnifier.style.backgroundPosition = `${bgX}px ${bgY}px`;
+    });
+    cardImage.addEventListener("mouseleave", function() {
+      magnifier.style.display = "none";
+      cardImage.style.cursor = "zoom-in";
+    });
+  </script>
+</body>
+</html>
