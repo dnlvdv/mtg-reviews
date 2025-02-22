@@ -241,7 +241,19 @@
     const filterInput = document.getElementById('filterInput');
     const cardGrid = document.getElementById('cardGrid');
 
-    // Fetch card data from your JSON file (assumed to be in the same folder)
+    // Helper function: Remove duplicate cards by name.
+    function getUniqueCardsByName(cards) {
+      const unique = {};
+      cards.forEach(card => {
+        // Use lower-case name as key for consistency.
+        if (!unique[card.name.toLowerCase()]) {
+          unique[card.name.toLowerCase()] = card;
+        }
+      });
+      return Object.values(unique);
+    }
+
+    // Fetch card data from your JSON file (BLB.json)
     fetch('blb.json')
       .then(response => response.json())
       .then(data => {
@@ -252,9 +264,11 @@
           data = [data];
         }
         
-        // Build card items using the JSON data.
-        // (Assuming your JSON uses lowercase keys like "name" and "cost".)
-        data.forEach(card => {
+        // Remove duplicate cards based on name.
+        const uniqueCards = getUniqueCardsByName(data);
+        
+        // Build card items using the uniqueCards array.
+        uniqueCards.forEach(card => {
           const cardItem = document.createElement('div');
           cardItem.className = 'card-item';
           cardItem.setAttribute('data-name', card.name.toLowerCase());
