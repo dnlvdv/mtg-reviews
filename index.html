@@ -2,238 +2,138 @@
 <html lang="en">
 <head>
   <meta charset="UTF-8" />
-  <title>MTG Reviews - Home</title>
-  <!-- Modern Google Font -->
-  <link
-    href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap"
-    rel="stylesheet"
-  />
+  <title>MTG Card Reviews – Home</title>
+
+  <!-- Basic SEO Meta Tags -->
+  <meta name="description" content="Explore Magic: The Gathering custom expansions, detailed card reviews, and more. Dive into Aether Drift and Bloomburrow for an in-depth look at unique MTG card designs." />
+  <meta name="keywords" content="MTG, Magic: The Gathering, card reviews, Aether Drift, Bloomburrow, custom expansions, TCG" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
   <meta name="google-site-verification" content="AXIignd5KWshvFz2j43mDftJj6qPxeqpQj1kBmRwtkU" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+
   <style>
-    /* ----- GLOBAL STYLES ----- */
+    /* Reset and Global */
     * {
       box-sizing: border-box;
-    }
-    body {
       margin: 0;
       padding: 0;
-      font-family: 'Roboto', sans-serif;
-      background: #1e1e1e; /* Dark background */
-      color: #e0e0e0;      /* Light text for contrast */
     }
-    a {
-      text-decoration: none;
-      color: #ffffff;
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1e1e1e, #121212);
+      color: #e0e0e0;
+      margin: 0;
     }
 
-    /* ----- NAVIGATION BAR ----- */
+    /* Navigation Bar */
     nav {
       display: flex;
       align-items: center;
-      justify-content: center; /* Center the links */
+      justify-content: space-between;
       background: linear-gradient(90deg, #1e1e1e, #292929);
-      box-shadow: 0 4px 10px rgba(0, 0, 0, 0.3);
       padding: 15px 20px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
     }
-    nav a {
-      margin: 0 15px;
-      font-weight: bold;
-      font-size: 18px;
-      padding: 8px 15px;
-      border-radius: 5px;
-      transition: background 0.3s, box-shadow 0.3s;
+    nav .brand {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
     }
-    nav a:hover {
-      background: #ff6600;
-      box-shadow: 0 0 10px rgba(255, 102, 0, 0.6);
-    }
-
-    /* ----- PAGE WRAPPER ----- */
-    .container {
-      max-width: 1200px;
-      margin: 0 auto;
-      padding: 20px;
-    }
-
-    /* ----- PAGE TITLE & FILTER INPUT ----- */
-    h1 {
-      text-align: center;
-      margin-top: 10px;
-      margin-bottom: 10px;
-      font-weight: 500;
-    }
-    .filter-input {
-      display: block;
-      margin: 0 auto 30px auto;
-      padding: 10px;
-      width: 100%;
-      max-width: 400px;
-      border: none;
-      border-radius: 8px;
+    nav .nav-links a {
+      color: #ffffff;
+      text-decoration: none;
       font-size: 16px;
-      background: #2b2b2b;
-      color: #e0e0e0;
+      font-weight: bold;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background 0.3s;
+      margin-left: 10px;
+    }
+    nav .nav-links a:hover {
+      background: #ff6600;
+      color: #fff;
     }
 
-    /* ----- MAIN LAYOUT (SIDEBAR + CARDS) ----- */
-    .content-wrapper {
-      display: flex;
-      gap: 20px;
-      min-height: 70vh; /* Just to demonstrate a taller layout */
-    }
-
-    /* ----- FILTER SIDEBAR (LEFT) ----- */
-    .filter-sidebar {
-      width: 80px;
-      background: #2b2b2b;
-      border-right: 2px solid #444;
-      padding: 20px 0;
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-    }
-    .filter-option {
-      width: 50px;
-      height: 50px;
-      margin-bottom: 15px;
-      border: 2px solid transparent;
-      border-radius: 50%;
-      overflow: hidden;
-      cursor: pointer;
-      transition: transform 0.3s, border 0.3s;
-    }
-    .filter-option:hover {
-      transform: scale(1.1);
-    }
-    .filter-option.active {
-      border-color: #ff6600;
-    }
-    .filter-option img {
-      width: 100%;
-      height: 100%;
-      object-fit: cover;
-    }
-
-    /* ----- CARD GRID (RIGHT) ----- */
-    .main-content {
-      flex: 1;
-    }
-    .card-grid {
-      display: grid;
-      grid-template-columns: repeat(auto-fill, minmax(180px, 1fr));
-      gap: 20px;
-    }
-    .card-item {
-      background: #2b2b2b;
-      padding: 10px;
-      border-radius: 10px;
-      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+    /* Hero / Landing Section */
+    .hero {
       text-align: center;
-      transition: transform 0.3s;
+      padding: 80px 20px;
     }
-    .card-item:hover {
-      transform: translateY(-5px);
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
     }
-    .card-item img {
-      width: 100%;
-      border-radius: 8px;
-    }
-    .card-item h3 {
-      margin: 10px 0 0;
-      font-weight: 500;
+    .hero p {
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.5;
+      font-size: 1.1rem;
+      color: #ccc;
     }
 
-    /* ----- RESPONSIVE STYLES ----- */
-    @media (max-width: 600px) {
-      nav a {
-        margin: 0 8px;
-      }
-      .content-wrapper {
-        flex-direction: column;
-      }
-      .filter-sidebar {
-        width: 100%;
-        border-right: none;
-        border-bottom: 2px solid #444;
-        flex-direction: row;
-        justify-content: center;
-      }
-      .filter-option {
-        width: 40px;
-        height: 40px;
-        margin-bottom: 0;
-        margin-right: 10px;
-      }
+    /* Call-to-Action Buttons */
+    .cta-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .cta-links a {
+      display: inline-block;
+      background: #007acc;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 15px 30px;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+    .cta-links a:hover {
+      background: #005f99;
+    }
+
+    /* Footer (Optional) */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-size: 0.9rem;
     }
   </style>
 </head>
 <body>
 
-  <!-- NAVIGATION BAR -->
+  <!-- Navigation Bar -->
   <nav>
-    <!-- Link 1: Filter Page -->
-    <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html">Filter Page</a>
-    <!-- Link 2: Aether Drift -->
-    <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
-    <!-- Link 3: Bloomburrow -->
-    <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>
+    <div class="brand">MTG Card Reviews</div>
+    <div class="nav-links">
+      <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
+      <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>
+    </div>
   </nav>
 
-  <!-- MAIN CONTENT CONTAINER -->
-  <div class="container">
-
-    <h1>MTG Cards</h1>
-    <input
-      type="text"
-      class="filter-input"
-      placeholder="Filter cards..."
-    />
-
-    <div class="content-wrapper">
-
-      <!-- LEFT SIDEBAR WITH COLOR ICONS -->
-      <aside class="filter-sidebar">
-        <div class="filter-option" data-color="W">
-          <img src="pictures/white.png" alt="White" />
-        </div>
-        <div class="filter-option" data-color="U">
-          <img src="pictures/blue.png" alt="Blue" />
-        </div>
-        <div class="filter-option" data-color="B">
-          <img src="pictures/black.png" alt="Black" />
-        </div>
-        <div class="filter-option" data-color="R">
-          <img src="pictures/red.png" alt="Red" />
-        </div>
-        <div class="filter-option" data-color="G">
-          <img src="pictures/green.png" alt="Green" />
-        </div>
-      </aside>
-
-      <!-- RIGHT SECTION: CARD GRID -->
-      <div class="main-content">
-        <div class="card-grid">
-          <!-- Example card items to mimic your screenshot -->
-          <div class="card-item">
-            <img src="pictures/sample-card.png" alt="Sample Card" />
-            <h3>Banishing Light</h3>
-          </div>
-          <div class="card-item">
-            <img src="pictures/sample-card.png" alt="Sample Card" />
-            <h3>Beza, the Bounding Spring</h3>
-          </div>
-          <div class="card-item">
-            <img src="pictures/sample-card.png" alt="Sample Card" />
-            <h3>Brave-Kin Duo</h3>
-          </div>
-          <div class="card-item">
-            <img src="pictures/sample-card.png" alt="Sample Card" />
-            <h3>Brightblade Stoat</h3>
-          </div>
-          <!-- ...Add more placeholders or remove if not needed -->
-        </div>
-      </div>
+  <!-- Main Hero Section -->
+  <section class="hero">
+    <h1>MTG Card Reviews</h1>
+    <p>
+      Welcome to the home of custom Magic: The Gathering expansions. Discover our in-depth card analyses, lore breakdowns, and design insights.
+      Whether you’re looking for fresh gameplay ideas or simply love exploring new sets, you’ve come to the right place.
+    </p>
+    <div class="cta-links">
+      <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Explore Aether Drift</a>
+      <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Explore Bloomburrow</a>
     </div>
-  </div>
+  </section>
+
+  <!-- Footer (Optional) -->
+  <footer>
+    &copy; <span id="year"></span> MTG Card Reviews. All rights reserved.
+  </footer>
+
+  <script>
+    // Dynamically update the year in the footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
 </body>
 </html>
