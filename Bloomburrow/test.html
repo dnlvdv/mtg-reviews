@@ -358,8 +358,11 @@
           // If no match, use the first card
           cardInfo = data[0];
         }
-        // Build image path
-        const cardPicture = "../Pictures/" + cardInfo.name.replace(/[\s,'-]/g, '_') + ".png";
+        // Replaces any space, comma, single quote, or dash with an underscore
+        const cardPicture = "../Pictures/" + 
+          cardInfo.name.replace(/[\s',-]/g, '_') + 
+          ".png";
+
         document.getElementById("cardImage").src = cardPicture;
         document.getElementById("cardImage").alt = cardInfo.name;
         
