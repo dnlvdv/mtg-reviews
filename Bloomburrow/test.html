@@ -512,7 +512,7 @@ if (numberParam && artistParam) {
         reviews.forEach(review => {
           const div = document.createElement("div");
           div.className = "review-item";
-          div.innerHTML = <strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>;
+          div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
           reviewList.appendChild(div);
         });
       }
