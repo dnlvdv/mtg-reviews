@@ -242,19 +242,7 @@
     const filterInput = document.getElementById('filterInput');
     const cardGrid = document.getElementById('cardGrid');
 
-    // Helper function: Remove duplicate cards by name.
-    function getUniqueCardsByName(cards) {
-      const unique = {};
-      cards.forEach(card => {
-        // Use lower-case name as key for consistency.
-        if (!unique[card.name.toLowerCase()]) {
-          unique[card.name.toLowerCase()] = card;
-        }
-      });
-      return Object.values(unique);
-    }
-
-    // Fetch card data from your JSON file (BLB.json)
+    // Fetch card data from your JSON file (blb.json)
     fetch('blb.json')
       .then(response => response.json())
       .then(data => {
@@ -265,22 +253,25 @@
           data = [data];
         }
         
-        // Remove duplicate cards based on name.
-        const uniqueCards = getUniqueCardsByName(data);
-        
-        // Build card items using the uniqueCards array.
-        uniqueCards.forEach(card => {
+        // Instead of filtering out duplicates, show all available versions.
+        data.forEach(card => {
           const cardItem = document.createElement('div');
           cardItem.className = 'card-item';
           cardItem.setAttribute('data-name', card.name.toLowerCase());
           cardItem.setAttribute('data-cost', card.manaCost || "");
           
-          // Compute the picture path based on card name,
-          // replacing spaces, commas, dashes, and apostrophes with underscores.
-          const cardPicture = "../Pictures/" + card.name.replace(/[\s,\'\-]/g, '_') + ".png";
+          // Build the picture path using the new "Pictures 2" folder.
+          // Use a regex that replaces any non-word character with an underscore.
+          const cardPicture = "../Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
+            (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
+          
+          // Build the card link URL with query parameters.
+          const cardLink = "/mtg-reviews/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
+            (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
+            (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
           
           cardItem.innerHTML = `
-            <a href="/mtg-reviews/Bloomburrow/cards_dynamic.html?card=${encodeURIComponent(card.name)}">
+            <a href="${cardLink}">
               <img src="${cardPicture}" alt="${card.name}" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';" />
               <h3>${card.name}</h3>
             </a>
@@ -321,12 +312,9 @@
 
     // Color filter sidebar functionality.
     const filterOptions = document.querySelectorAll('.filter-option');
-
     filterOptions.forEach(option => {
       option.addEventListener('click', () => {
         const color = option.getAttribute('data-color');
-
-        // Toggle the color in the activeFilters array.
         if (activeFilters.includes(color)) {
           activeFilters = activeFilters.filter(c => c !== color);
           option.classList.remove('active');
@@ -334,7 +322,6 @@
           activeFilters.push(color);
           option.classList.add('active');
         }
-        // Update card visibility after toggling.
         updateCardVisibility();
       });
     });
