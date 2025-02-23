@@ -355,13 +355,18 @@
           } else if (!Array.isArray(data)) {
             data = [data];
           }
-        const cardNameParam = getQueryParameter("card");
-        const numberParam = getQueryParameter("number");
-        const artistParam = getQueryParameter("artist"); 
+          const cardNameParam = getQueryParameter("card");
+          const numberParam = getQueryParameter("number");
+          const artistParam = getQueryParameter("artist"); 
           console.log("card:", cardNameParam, "number:", numberParam, "artist:", artistParam);
-          cardInfo = data.find(card => card.name === cardNameParam);
+          
+          // Filter card by both name and collector number (if provided)
+          if (cardNameParam && numberParam) {
+            cardInfo = data.find(card => card.name === cardNameParam && card.number === numberParam);
+          }
+          // Fallback: If no exact match, try filtering by name only or use the first card
           if (!cardInfo) {
-            cardInfo = data[0];
+            cardInfo = data.find(card => card.name === cardNameParam) || data[0];
           }
 
           // Update the document title
@@ -377,16 +382,15 @@
           metaDesc.setAttribute("content", "In-depth review of " + cardInfo.name + ". Explore its strengths, weaknesses, oracle text, flavor text, and more.");
 
           // Construct the image path.
-          // Changed: Using "Pictures 2" folder and new naming convention if cardInfo has number and artist.
-let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[^\w]/g, '_');
-if (numberParam && artistParam) {
-  cardPicture += "_" + numberParam + "_" + artistParam.replace(/[^\w]/g, '_') + ".png";
-} else if (cardInfo.number && cardInfo.artist) {
-  cardPicture += "_" + cardInfo.number + "_" + cardInfo.artist.replace(/[^\w]/g, '_') + ".png";
-} else {
-  cardPicture += ".png";
-}
-
+          // Using "Pictures 2" folder and new naming convention if number and artist are provided.
+          let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[^\w]/g, '_');
+          if (numberParam && artistParam) {
+            cardPicture += "_" + numberParam + "_" + artistParam.replace(/[^\w]/g, '_') + ".png";
+          } else if (cardInfo.number && cardInfo.artist) {
+            cardPicture += "_" + cardInfo.number + "_" + cardInfo.artist.replace(/[^\w]/g, '_') + ".png";
+          } else {
+            cardPicture += ".png";
+          }
           
           const cardImgElement = document.getElementById("cardImage");
           cardImgElement.src = cardPicture;
