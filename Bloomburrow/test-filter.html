@@ -108,7 +108,7 @@
     }
     
     .filter-option:hover {
-            transform: scale(1.1);
+      transform: scale(1.1);
     }
     
     .filter-option.active {
@@ -180,6 +180,7 @@
     }
     
     .thumb-image:hover {
+      /* Optional styling on hover */
     }
 
     /* ---------- Responsive Adjustments ---------- */
@@ -232,19 +233,19 @@
       <!-- FILTER SIDEBAR (Left Column) -->
       <aside class="filter-sidebar">
         <div class="filter-option" data-color="W">
-          <img src="../Pictures/White.png" alt="White" />
+          <img src="../Pictures/White.png" alt="White" loading="lazy" />
         </div>
         <div class="filter-option" data-color="U">
-          <img src="../Pictures/Blue.png" alt="Blue" />
+          <img src="../Pictures/Blue.png" alt="Blue" loading="lazy" />
         </div>
         <div class="filter-option" data-color="B">
-          <img src="../Pictures/Black.png" alt="Black" />
+          <img src="../Pictures/Black.png" alt="Black" loading="lazy" />
         </div>
         <div class="filter-option" data-color="R">
-          <img src="../Pictures/Red.png" alt="Red" />
+          <img src="../Pictures/Red.png" alt="Red" loading="lazy" />
         </div>
         <div class="filter-option" data-color="G">
-          <img src="../Pictures/Green.png" alt="Green" />
+          <img src="../Pictures/Green.png" alt="Green" loading="lazy" />
         </div>
       </aside>
 
@@ -258,6 +259,15 @@
   </div>
 
   <script>
+    // Debounce helper function.
+    function debounce(func, delay) {
+      let timeoutId;
+      return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
     // Array to hold active color filters (e.g. ["W", "B"])
     let activeFilters = [];
     const filterInput = document.getElementById('filterInput');
@@ -316,7 +326,7 @@
           // Build the card item HTML without inline error handling.
           cardItem.innerHTML = `
             <a class="main-link" href="${defaultLink}">
-              <img class="main-image" src="${defaultImageSrc}" alt="${defaultVersion.name}" />
+              <img class="main-image" loading="lazy" src="${defaultImageSrc}" alt="${defaultVersion.name}" />
             </a>
             <h3>${cardName}</h3>
             <div class="thumbnails"></div>
@@ -329,11 +339,9 @@
           // Main image error handling for when an alternate image fails.
           mainImg.onerror = function() {
             if (mainImg.src !== mainImg.dataset.defaultSrc) {
-              // If an alternate image fails, revert to the default image and link.
               mainImg.src = mainImg.dataset.defaultSrc;
               cardItem.querySelector('.main-link').href = defaultLink;
             } else {
-              // If the default image itself fails, use a placeholder.
               mainImg.src = '../Pictures/placeholder.png';
             }
           };
@@ -346,6 +354,7 @@
               const versionLink = getCardLink(version);
               const thumb = document.createElement('img');
               thumb.className = 'thumb-image';
+              thumb.loading = "lazy";
               thumb.src = versionImageSrc;
               thumb.alt = version.name;
               
@@ -355,7 +364,7 @@
               });
               
               // On hover, update the main image and link with error checking.
-              thumb.addEventListener('mouseover', function() {
+              thumb.addEventListener('mouseover', debounce(function() {
                 // Check if the thumbnail loaded correctly.
                 if (!thumb.complete || thumb.naturalWidth === 0) return;
                 
@@ -363,13 +372,19 @@
                 const currentSrc = mainImg.src;
                 const currentLink = mainLink.href;
                 
+                // Reset a flag so we only retry once.
+                mainImg.retryDone = false;
+                
                 mainImg.src = versionImageSrc;
                 mainLink.href = versionLink;
                 
                 // Attach a temporary error handler to revert if the new image fails.
                 mainImg.onerror = function() {
-                  mainImg.src = currentSrc;
-                  mainLink.href = currentLink;
+                  if (!mainImg.retryDone) {
+                    mainImg.retryDone = true;
+                    mainImg.src = currentSrc;
+                    mainLink.href = currentLink;
+                  }
                   // Restore the default error handling.
                   mainImg.onerror = function() {
                     if (mainImg.src !== mainImg.dataset.defaultSrc) {
@@ -380,7 +395,7 @@
                     }
                   };
                 };
-              });
+              }, 200));
               
               // On click, navigate to that version's page.
               thumb.addEventListener('click', function(e) {
