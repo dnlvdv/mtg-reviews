@@ -66,7 +66,7 @@
       margin-top: 0;
     }
 
-    /* Filter input styling */
+    /* ---------- Filter Input ---------- */
     #filterInput {
       width: 100%;
       max-width: 400px;
@@ -78,7 +78,7 @@
       font-size: 16px;
     }
 
-    /* ---------- Content Wrapper (Sidebar + Cards) ---------- */
+    /* ---------- Content Wrapper ---------- */
     .content-wrapper {
       display: flex;
       gap: 20px;
@@ -121,7 +121,7 @@
       object-fit: cover;
     }
 
-    /* ---------- Main Content (Right) ---------- */
+    /* ---------- Main Content (Right Column) ---------- */
     .main-content {
       flex: 1;
     }
@@ -146,22 +146,44 @@
       transform: translateY(-5px);
     }
     
-    .card-item img {
-      width: 100%;
-      height: auto;
-      border-radius: 8px;
-    }
-    
     .card-item h3 {
       margin: 10px 0 0;
     }
     
-    .card-item a {
+    /* ---------- Main Image and Thumbnails ---------- */
+    .main-link,
+    .main-link:visited {
       text-decoration: none;
       color: inherit;
     }
+    
+    .main-image {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .thumbnails {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 5px;
+      justify-content: center;
+    }
+    
+    .thumb-image {
+      width: 40px;
+      height: auto;
+      border-radius: 4px;
+      margin: 2px;
+      cursor: pointer;
+    }
+    
+    .thumb-image:hover {
+      /* Optional: add a hover style */
+    }
 
-    /* ---- Responsive Adjustments ---- */
+    /* ---------- Responsive Adjustments ---------- */
     @media (max-width: 600px) {
       .content-wrapper {
         flex-direction: column;
@@ -211,19 +233,19 @@
       <!-- FILTER SIDEBAR (Left Column) -->
       <aside class="filter-sidebar">
         <div class="filter-option" data-color="W">
-          <img src="../Pictures/White.png" alt="White" />
+          <img src="../Pictures/White.png" alt="White" loading="lazy" />
         </div>
         <div class="filter-option" data-color="U">
-          <img src="../Pictures/Blue.png" alt="Blue" />
+          <img src="../Pictures/Blue.png" alt="Blue" loading="lazy" />
         </div>
         <div class="filter-option" data-color="B">
-          <img src="../Pictures/Black.png" alt="Black" />
+          <img src="../Pictures/Black.png" alt="Black" loading="lazy" />
         </div>
         <div class="filter-option" data-color="R">
-          <img src="../Pictures/Red.png" alt="Red" />
+          <img src="../Pictures/Red.png" alt="Red" loading="lazy" />
         </div>
         <div class="filter-option" data-color="G">
-          <img src="../Pictures/Green.png" alt="Green" />
+          <img src="../Pictures/Green.png" alt="Green" loading="lazy" />
         </div>
       </aside>
 
@@ -237,79 +259,195 @@
   </div>
 
   <script>
+    // Debounce helper function.
+    function debounce(func, delay) {
+      let timeoutId;
+      return function(...args) {
+        clearTimeout(timeoutId);
+        timeoutId = setTimeout(() => func.apply(this, args), delay);
+      };
+    }
+
+    // Helper functions to generate image source and link URL for a card version.
+    function getImageSrc(card) {
+      // Replace any non-word character with underscore.
+      return "../Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
+             (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
+    }
+    function getCardLink(card) {
+      return "/mtg-reviews/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
+             (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
+             (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
+    }
+
+    // Function that returns a Promise that resolves with the first working version in an array.
+    function findFirstWorkingImage(versions) {
+      return new Promise((resolve, reject) => {
+        let index = 0;
+        function testNext() {
+          if (index >= versions.length) {
+            reject("No working image found");
+            return;
+          }
+          const version = versions[index];
+          const src = getImageSrc(version);
+          const img = new Image();
+          img.onload = function() {
+            resolve({ version: version, src: src });
+          };
+          img.onerror = function() {
+            index++;
+            testNext();
+          };
+          img.src = src;
+        }
+        testNext();
+      });
+    }
+
     // Array to hold active color filters (e.g. ["W", "B"])
     let activeFilters = [];
     const filterInput = document.getElementById('filterInput');
     const cardGrid = document.getElementById('cardGrid');
 
+    // Group cards by name (each group will contain all versions)
+    function groupCards(cards) {
+      const groups = {};
+      cards.forEach(card => {
+        if (!groups[card.name]) {
+          groups[card.name] = [];
+        }
+        groups[card.name].push(card);
+      });
+      return groups;
+    }
+
     // Fetch card data from your JSON file (blb.json)
     fetch('blb.json')
       .then(response => response.json())
       .then(data => {
-        // Adjust for nested data structure if needed:
         if (data.data && Array.isArray(data.data.cards)) {
           data = data.data.cards;
         } else if (!Array.isArray(data)) {
           data = [data];
         }
         
-        // Instead of filtering out duplicates, show all available versions.
-        data.forEach(card => {
-          const cardItem = document.createElement('div');
-          cardItem.className = 'card-item';
-          cardItem.setAttribute('data-name', card.name.toLowerCase());
-          cardItem.setAttribute('data-cost', card.manaCost || "");
-          
-          // Build the picture path using the new "Pictures 2" folder.
-          // Use a regex that replaces any non-word character with an underscore.
-          const cardPicture = "../Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
-            (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
-          
-          // Build the card link URL with query parameters.
-          const cardLink = "/mtg-reviews/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
-            (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
-            (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
-          
-          cardItem.innerHTML = `
-            <a href="${cardLink}">
-              <img src="${cardPicture}" alt="${card.name}" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';" />
-              <h3>${card.name}</h3>
-            </a>
-          `;
-          cardGrid.appendChild(cardItem);
+        const groupedCards = groupCards(data);
+        const groupKeys = Object.keys(groupedCards);
+        // Process each card group asynchronously.
+        const promises = groupKeys.map(cardName => {
+          const versions = groupedCards[cardName];
+          return findFirstWorkingImage(versions)
+            .then(result => {
+              const defaultVersion = result.version;
+              const defaultImageSrc = result.src;
+              const defaultLink = getCardLink(defaultVersion);
+              // Create the card item block.
+              const cardItem = document.createElement('div');
+              cardItem.className = 'card-item';
+              cardItem.setAttribute('data-name', cardName.toLowerCase());
+              cardItem.setAttribute('data-cost', defaultVersion.manaCost || "");
+              cardItem.innerHTML = `
+                <a class="main-link" href="${defaultLink}">
+                  <img class="main-image" loading="lazy" src="${defaultImageSrc}" alt="${defaultVersion.name}" />
+                </a>
+                <h3>${cardName}</h3>
+                <div class="thumbnails"></div>
+              `;
+              const mainImg = cardItem.querySelector('.main-image');
+              mainImg.dataset.defaultSrc = defaultImageSrc;
+              mainImg.onerror = function() {
+                if (mainImg.src !== mainImg.dataset.defaultSrc) {
+                  mainImg.src = mainImg.dataset.defaultSrc;
+                  cardItem.querySelector('.main-link').href = defaultLink;
+                } else {
+                  mainImg.src = '../Pictures/placeholder.png';
+                }
+              };
+
+              const thumbnailsContainer = cardItem.querySelector('.thumbnails');
+              if (versions.length > 1) {
+                // Loop through each version to create a thumbnail.
+                versions.forEach(version => {
+                  const versionImageSrc = getImageSrc(version);
+                  const versionLink = getCardLink(version);
+                  const thumb = document.createElement('img');
+                  thumb.className = 'thumb-image';
+                  thumb.loading = "lazy";
+                  thumb.src = versionImageSrc;
+                  thumb.alt = version.name;
+                  
+                  // Remove the thumbnail if it fails to load.
+                  thumb.addEventListener('error', function() {
+                    thumb.remove();
+                  });
+                  
+                  // On hover, update the main image and link with error checking.
+                  thumb.addEventListener('mouseover', debounce(function() {
+                    if (!thumb.complete || thumb.naturalWidth === 0) return;
+                    const mainLink = cardItem.querySelector('.main-link');
+                    const currentSrc = mainImg.src;
+                    const currentLink = mainLink.href;
+                    mainImg.retryDone = false;
+                    mainImg.src = versionImageSrc;
+                    mainLink.href = versionLink;
+                    mainImg.onerror = function() {
+                      if (!mainImg.retryDone) {
+                        mainImg.retryDone = true;
+                        mainImg.src = currentSrc;
+                        mainLink.href = currentLink;
+                      }
+                      mainImg.onerror = function() {
+                        if (mainImg.src !== mainImg.dataset.defaultSrc) {
+                          mainImg.src = mainImg.dataset.defaultSrc;
+                          mainLink.href = defaultLink;
+                        } else {
+                          mainImg.src = '../Pictures/placeholder.png';
+                        }
+                      };
+                    };
+                  }, 200));
+                  
+                  // On click, navigate to that version's page.
+                  thumb.addEventListener('click', function(e) {
+                    window.location.href = versionLink;
+                    e.stopPropagation();
+                  });
+                  thumbnailsContainer.appendChild(thumb);
+                });
+              } else {
+                thumbnailsContainer.style.display = 'none';
+              }
+              cardGrid.appendChild(cardItem);
+              return true;
+            })
+            .catch(err => {
+              // Skip this card group if no working image is found.
+              return false;
+            });
         });
-        
-        // Attach filtering functionality after cards are added.
-        updateCardVisibility();
+        Promise.all(promises).then(() => {
+          updateCardVisibility();
+        });
       })
       .catch(error => console.error("Error loading card data:", error));
 
-    // Function to update the visibility of cards based on filters.
+    // Function to update card visibility based on text and color filters.
     function updateCardVisibility() {
       const textQuery = filterInput.value.toLowerCase().trim();
       const cards = document.querySelectorAll('.card-item');
-
       cards.forEach(card => {
         const cardName = card.getAttribute('data-name');
         const cardCost = card.getAttribute('data-cost') || "";
-
-        // 1) Check if the card name matches the text query.
         const matchesName = cardName.includes(textQuery);
-
-        // 2) Check color filter: every active filter must be present in the card cost.
         const matchesColors = activeFilters.every(color => cardCost.includes(`{${color}}`));
-
-        // If no colors are selected, ignore color filtering.
         const finalMatchesColors = activeFilters.length > 0 ? matchesColors : true;
-
-        // 3) Show or hide the card based on both filters.
         card.style.display = (matchesName && finalMatchesColors) ? '' : 'none';
       });
     }
-
-    // Update card visibility when typing in the filter input.
+    
     filterInput.addEventListener('input', updateCardVisibility);
-
+    
     // Color filter sidebar functionality.
     const filterOptions = document.querySelectorAll('.filter-option');
     filterOptions.forEach(option => {
