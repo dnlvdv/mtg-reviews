@@ -323,29 +323,35 @@
             <div class="thumbnails"></div>
           `;
           
-          const thumbnailsContainer = cardItem.querySelector('.thumbnails');
-          // For each version in this group, create a thumbnail.
-          versions.forEach(version => {
-            const versionImageSrc = getImageSrc(version);
-            const versionLink = getCardLink(version);
-            const thumb = document.createElement('img');
-            thumb.className = 'thumb-image';
-            thumb.src = versionImageSrc;
-            thumb.alt = version.name;
-            // On hover, update the main image and link.
-            thumb.addEventListener('mouseover', function() {
-              const mainImg = cardItem.querySelector('.main-image');
-              mainImg.src = versionImageSrc;
-              const mainLink = cardItem.querySelector('.main-link');
-              mainLink.href = versionLink;
-            });
-            // On click, navigate to that version's page.
-            thumb.addEventListener('click', function(e) {
-              window.location.href = versionLink;
-              e.stopPropagation();
-            });
-            thumbnailsContainer.appendChild(thumb);
-          });
+const thumbnailsContainer = cardItem.querySelector('.thumbnails');
+if (versions.length > 1) {
+  // Loop through each version to create a thumbnail.
+  versions.forEach(version => {
+    const versionImageSrc = getImageSrc(version);
+    const versionLink = getCardLink(version);
+    const thumb = document.createElement('img');
+    thumb.className = 'thumb-image';
+    thumb.src = versionImageSrc;
+    thumb.alt = version.name;
+    // On hover, update the main image and link.
+    thumb.addEventListener('mouseover', function() {
+      const mainImg = cardItem.querySelector('.main-image');
+      mainImg.src = versionImageSrc;
+      const mainLink = cardItem.querySelector('.main-link');
+      mainLink.href = versionLink;
+    });
+    // On click, navigate to that version's page.
+    thumb.addEventListener('click', function(e) {
+      window.location.href = versionLink;
+      e.stopPropagation();
+    });
+    thumbnailsContainer.appendChild(thumb);
+  });
+} else {
+  // If no alternate art is found, hide the thumbnails container.
+  thumbnailsContainer.style.display = 'none';
+}
+
           
           cardGrid.appendChild(cardItem);
         });
