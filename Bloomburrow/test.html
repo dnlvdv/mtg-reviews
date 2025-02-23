@@ -355,8 +355,9 @@
           } else if (!Array.isArray(data)) {
             data = [data];
           }
-          const cardNameParam = getQueryParameter("card");
-          cardInfo = data.find(card => card.name === cardNameParam);
+        const cardNameParam = getQueryParameter("card");
+        const numberParam = getQueryParameter("number");
+        const artistParam = getQueryParameter("artist");          cardInfo = data.find(card => card.name === cardNameParam);
           if (!cardInfo) {
             cardInfo = data[0];
           }
@@ -375,12 +376,15 @@
 
           // Construct the image path.
           // Changed: Using "Pictures 2" folder and new naming convention if cardInfo has number and artist.
-          let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[\s',-]/g, '_');
-          if(cardInfo.number && cardInfo.artist) {
-              cardPicture += "_" + cardInfo.number + "_" + cardInfo.artist.replace(/[\s',-]/g, '_') + ".png";
-          } else {
-              cardPicture += ".png";
-          }
+let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[\s',-]/g, '_');
+if (numberParam && artistParam) {
+  cardPicture += "_" + numberParam + "_" + artistParam.replace(/[\s',-]/g, '_') + ".png";
+} else if (cardInfo.number && cardInfo.artist) {
+  cardPicture += "_" + cardInfo.number + "_" + cardInfo.artist.replace(/[\s',-]/g, '_') + ".png";
+} else {
+  cardPicture += ".png";
+}
+
           
           const cardImgElement = document.getElementById("cardImage");
           cardImgElement.src = cardPicture;
