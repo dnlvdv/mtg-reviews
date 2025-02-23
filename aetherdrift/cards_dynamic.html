@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>MTG Card Review</title>
+<title></title>
+<meta name="description" content="">
   <!-- Comfortaa font from Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
@@ -343,7 +344,7 @@
         return params.get(name);
       }
 
-      // Fetch card data from DFT.json in the same directory
+      // Fetch card data from dft.json in the same directory
       fetch('./DFT.json')
         .then(response => response.json())
         .then(data => {
@@ -357,6 +358,19 @@
           if (!cardInfo) {
             cardInfo = data[0];
           }
+
+          // Update the document title
+document.title = cardInfo.name + " Card Review";
+
+// Update (or create) the meta description
+let metaDesc = document.querySelector('meta[name="description"]');
+if (!metaDesc) {
+  metaDesc = document.createElement('meta');
+  metaDesc.setAttribute("name", "description");
+  document.head.appendChild(metaDesc);
+}
+metaDesc.setAttribute("content", "In-depth review of " + cardInfo.name + ". Explore its strengths, weaknesses, oracle text, flavor text, and more.");
+
           // Construct the image path. Adjust if necessary.
           const cardPicture = "../Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
           
