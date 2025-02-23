@@ -378,11 +378,11 @@
 
           // Construct the image path.
           // Changed: Using "Pictures 2" folder and new naming convention if cardInfo has number and artist.
-let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[\s',-]/g, '_');
+let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[^\w]/g, '_');
 if (numberParam && artistParam) {
-  cardPicture += "_" + numberParam + "_" + artistParam.replace(/[\s',-]/g, '_') + ".png";
+  cardPicture += "_" + numberParam + "_" + artistParam.replace(/[^\w]/g, '_') + ".png";
 } else if (cardInfo.number && cardInfo.artist) {
-  cardPicture += "_" + cardInfo.number + "_" + cardInfo.artist.replace(/[\s',-]/g, '_') + ".png";
+  cardPicture += "_" + cardInfo.number + "_" + cardInfo.artist.replace(/[^\w]/g, '_') + ".png";
 } else {
   cardPicture += ".png";
 }
