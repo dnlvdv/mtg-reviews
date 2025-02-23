@@ -3,8 +3,7 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>All Bloomburrow cards - review MTG cards</title>
-  <meta name="description" content="Review Bloomburrow MTG cards, find reviews from others and learn about art, mechanics and our favorite game">
+  <title>MTG Cards</title>
   <!-- Modern Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
   
@@ -254,8 +253,8 @@
       return Object.values(unique);
     }
 
-    // Fetch card data from your JSON file (BLB.json)
-    fetch('blb.json')
+    // Fetch card data from your JSON file (DFT.json)
+    fetch('DFT.json')
       .then(response => response.json())
       .then(data => {
         // Adjust for nested data structure if needed:
@@ -280,7 +279,7 @@
           const cardPicture = "../Pictures/" + card.name.replace(/[\s,\'\-]/g, '_') + ".png";
           
           cardItem.innerHTML = `
-            <a href="/mtg-reviews/Bloomburrow/cards_dynamic.html?card=${encodeURIComponent(card.name)}">
+            <a href="/mtg-reviews/aetherdrift/cards_dynamic.html?card=${encodeURIComponent(card.name)}">
               <img src="${cardPicture}" alt="${card.name}" onerror="this.onerror=null; this.src='../Pictures/placeholder.png';" />
               <h3>${card.name}</h3>
             </a>

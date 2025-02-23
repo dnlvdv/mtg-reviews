@@ -1,0 +1,140 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8" />
+  <title>MTG Card Reviews – Home</title>
+
+  <!-- Basic SEO Meta Tags -->
+  <meta name="description" content="Explore Magic: The Gathering custom expansions, detailed card reviews, and more. Dive into Aether Drift and Bloomburrow for an in-depth look at unique MTG card designs." />
+  <meta name="keywords" content="MTG, Magic: The Gathering, card reviews, Aether Drift, Bloomburrow, custom expansions, TCG" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <meta name="google-site-verification" content="AXIignd5KWshvFz2j43mDftJj6qPxeqpQj1kBmRwtkU" />
+
+  <!-- Google Fonts -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet" />
+
+  <style>
+    /* Reset and Global */
+    * {
+      box-sizing: border-box;
+      margin: 0;
+      padding: 0;
+    }
+    body {
+      font-family: 'Roboto', sans-serif;
+      background: linear-gradient(135deg, #1e1e1e, #121212);
+      color: #e0e0e0;
+      margin: 0;
+    }
+
+    /* Navigation Bar */
+    nav {
+      display: flex;
+      align-items: center;
+      justify-content: space-between;
+      background: linear-gradient(90deg, #1e1e1e, #292929);
+      padding: 15px 20px;
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+    }
+    nav .brand {
+      font-size: 22px;
+      font-weight: 700;
+      color: #fff;
+    }
+    nav .nav-links a {
+      color: #ffffff;
+      text-decoration: none;
+      font-size: 16px;
+      font-weight: bold;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: background 0.3s;
+      margin-left: 10px;
+    }
+    nav .nav-links a:hover {
+      background: #ff6600;
+      color: #fff;
+    }
+
+    /* Hero / Landing Section */
+    .hero {
+      text-align: center;
+      padding: 80px 20px;
+    }
+    .hero h1 {
+      font-size: 3rem;
+      margin-bottom: 20px;
+    }
+    .hero p {
+      max-width: 600px;
+      margin: 0 auto 40px;
+      line-height: 1.5;
+      font-size: 1.1rem;
+      color: #ccc;
+    }
+
+    /* Call-to-Action Buttons */
+    .cta-links {
+      display: flex;
+      justify-content: center;
+      gap: 20px;
+    }
+    .cta-links a {
+      display: inline-block;
+      background: #007acc;
+      color: #fff;
+      text-decoration: none;
+      font-weight: 500;
+      padding: 15px 30px;
+      border-radius: 8px;
+      transition: background 0.3s;
+    }
+    .cta-links a:hover {
+      background: #005f99;
+    }
+
+    /* Footer (Optional) */
+    footer {
+      text-align: center;
+      padding: 20px;
+      color: #999;
+      font-size: 0.9rem;
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Navigation Bar -->
+  <nav>
+    <div class="brand">MTG Card Reviews</div>
+    <div class="nav-links">
+      <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
+      <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>
+    </div>
+  </nav>
+
+  <!-- Main Hero Section -->
+  <section class="hero">
+    <h1>MTG Card Reviews</h1>
+    <p>
+      Welcome to the ultimate hub for Magic: The Gathering card reviews! Here, players like you can rate, review, and discuss individual cards—whether you’re analyzing power level, flavor, or strategic potential. 
+      Dive into community-driven insights, share your own experiences, and discover how each card truly plays. 
+      Whether you’re a seasoned competitor or a casual brewer, this is the place to explore real player opinions on every MTG card.
+    </p>
+    <div class="cta-links">
+      <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Explore Aether Drift</a>
+      <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Explore Bloomburrow</a>
+    </div>
+  </section>
+
+  <!-- Footer (Optional) -->
+  <footer>
+    &copy; <span id="year"></span> MTG Card Reviews. All rights reserved.
+  </footer>
+
+  <script>
+    // Dynamically update the year in the footer
+    document.getElementById('year').textContent = new Date().getFullYear();
+  </script>
+</body>
+</html>
