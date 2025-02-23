@@ -180,7 +180,7 @@
     }
     
     .thumb-image:hover {
-      /* Optional styling on hover */
+      /* Optional: add a hover style */
     }
 
     /* ---------- Responsive Adjustments ---------- */
@@ -268,6 +268,43 @@
       };
     }
 
+    // Helper functions to generate image source and link URL for a card version.
+    function getImageSrc(card) {
+      // Replace any non-word character with underscore.
+      return "../Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
+             (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
+    }
+    function getCardLink(card) {
+      return "/mtg-reviews/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
+             (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
+             (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
+    }
+
+    // Function that returns a Promise that resolves with the first working version in an array.
+    function findFirstWorkingImage(versions) {
+      return new Promise((resolve, reject) => {
+        let index = 0;
+        function testNext() {
+          if (index >= versions.length) {
+            reject("No working image found");
+            return;
+          }
+          const version = versions[index];
+          const src = getImageSrc(version);
+          const img = new Image();
+          img.onload = function() {
+            resolve({ version: version, src: src });
+          };
+          img.onerror = function() {
+            index++;
+            testNext();
+          };
+          img.src = src;
+        }
+        testNext();
+      });
+    }
+
     // Array to hold active color filters (e.g. ["W", "B"])
     let activeFilters = [];
     const filterInput = document.getElementById('filterInput');
@@ -296,123 +333,102 @@
         }
         
         const groupedCards = groupCards(data);
-        
-        // For each group (card name), create a card item that shows the default (main) version plus thumbnails for all versions.
-        Object.keys(groupedCards).forEach(cardName => {
+        const groupKeys = Object.keys(groupedCards);
+        // Process each card group asynchronously.
+        const promises = groupKeys.map(cardName => {
           const versions = groupedCards[cardName];
-          const cardItem = document.createElement('div');
-          cardItem.className = 'card-item';
-          cardItem.setAttribute('data-name', cardName.toLowerCase());
-          // Use the first version's manaCost for filtering (if needed)
-          cardItem.setAttribute('data-cost', versions[0].manaCost || "");
+          return findFirstWorkingImage(versions)
+            .then(result => {
+              const defaultVersion = result.version;
+              const defaultImageSrc = result.src;
+              const defaultLink = getCardLink(defaultVersion);
+              // Create the card item block.
+              const cardItem = document.createElement('div');
+              cardItem.className = 'card-item';
+              cardItem.setAttribute('data-name', cardName.toLowerCase());
+              cardItem.setAttribute('data-cost', defaultVersion.manaCost || "");
+              cardItem.innerHTML = `
+                <a class="main-link" href="${defaultLink}">
+                  <img class="main-image" loading="lazy" src="${defaultImageSrc}" alt="${defaultVersion.name}" />
+                </a>
+                <h3>${cardName}</h3>
+                <div class="thumbnails"></div>
+              `;
+              const mainImg = cardItem.querySelector('.main-image');
+              mainImg.dataset.defaultSrc = defaultImageSrc;
+              mainImg.onerror = function() {
+                if (mainImg.src !== mainImg.dataset.defaultSrc) {
+                  mainImg.src = mainImg.dataset.defaultSrc;
+                  cardItem.querySelector('.main-link').href = defaultLink;
+                } else {
+                  mainImg.src = '../Pictures/placeholder.png';
+                }
+              };
 
-          // Helper functions to generate image source and link URL for a card version.
-          function getImageSrc(card) {
-            // Replace any non-word character with underscore.
-            return "../Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
-                   (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
-          }
-          function getCardLink(card) {
-            return "/mtg-reviews/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
-                   (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
-                   (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
-          }
-          
-          // Set default version as the first one.
-          const defaultVersion = versions[0];
-          const defaultImageSrc = getImageSrc(defaultVersion);
-          const defaultLink = getCardLink(defaultVersion);
-          
-          // Build the card item HTML without inline error handling.
-          cardItem.innerHTML = `
-            <a class="main-link" href="${defaultLink}">
-              <img class="main-image" loading="lazy" src="${defaultImageSrc}" alt="${defaultVersion.name}" />
-            </a>
-            <h3>${cardName}</h3>
-            <div class="thumbnails"></div>
-          `;
-          
-          // Get the main image element and assign its default source.
-          const mainImg = cardItem.querySelector('.main-image');
-          mainImg.dataset.defaultSrc = defaultImageSrc;
-          
-          // Main image error handling for when an alternate image fails.
-          mainImg.onerror = function() {
-            if (mainImg.src !== mainImg.dataset.defaultSrc) {
-              mainImg.src = mainImg.dataset.defaultSrc;
-              cardItem.querySelector('.main-link').href = defaultLink;
-            } else {
-              mainImg.src = '../Pictures/placeholder.png';
-            }
-          };
-
-          const thumbnailsContainer = cardItem.querySelector('.thumbnails');
-          if (versions.length > 1) {
-            // Loop through each version to create a thumbnail.
-            versions.forEach(version => {
-              const versionImageSrc = getImageSrc(version);
-              const versionLink = getCardLink(version);
-              const thumb = document.createElement('img');
-              thumb.className = 'thumb-image';
-              thumb.loading = "lazy";
-              thumb.src = versionImageSrc;
-              thumb.alt = version.name;
-              
-              // Remove the thumbnail if it fails to load.
-              thumb.addEventListener('error', function() {
-                thumb.remove();
-              });
-              
-              // On hover, update the main image and link with error checking.
-              thumb.addEventListener('mouseover', debounce(function() {
-                // Check if the thumbnail loaded correctly.
-                if (!thumb.complete || thumb.naturalWidth === 0) return;
-                
-                const mainLink = cardItem.querySelector('.main-link');
-                const currentSrc = mainImg.src;
-                const currentLink = mainLink.href;
-                
-                // Reset a flag so we only retry once.
-                mainImg.retryDone = false;
-                
-                mainImg.src = versionImageSrc;
-                mainLink.href = versionLink;
-                
-                // Attach a temporary error handler to revert if the new image fails.
-                mainImg.onerror = function() {
-                  if (!mainImg.retryDone) {
-                    mainImg.retryDone = true;
-                    mainImg.src = currentSrc;
-                    mainLink.href = currentLink;
-                  }
-                  // Restore the default error handling.
-                  mainImg.onerror = function() {
-                    if (mainImg.src !== mainImg.dataset.defaultSrc) {
-                      mainImg.src = mainImg.dataset.defaultSrc;
-                      mainLink.href = defaultLink;
-                    } else {
-                      mainImg.src = '../Pictures/placeholder.png';
-                    }
-                  };
-                };
-              }, 200));
-              
-              // On click, navigate to that version's page.
-              thumb.addEventListener('click', function(e) {
-                window.location.href = versionLink;
-                e.stopPropagation();
-              });
-              thumbnailsContainer.appendChild(thumb);
+              const thumbnailsContainer = cardItem.querySelector('.thumbnails');
+              if (versions.length > 1) {
+                // Loop through each version to create a thumbnail.
+                versions.forEach(version => {
+                  const versionImageSrc = getImageSrc(version);
+                  const versionLink = getCardLink(version);
+                  const thumb = document.createElement('img');
+                  thumb.className = 'thumb-image';
+                  thumb.loading = "lazy";
+                  thumb.src = versionImageSrc;
+                  thumb.alt = version.name;
+                  
+                  // Remove the thumbnail if it fails to load.
+                  thumb.addEventListener('error', function() {
+                    thumb.remove();
+                  });
+                  
+                  // On hover, update the main image and link with error checking.
+                  thumb.addEventListener('mouseover', debounce(function() {
+                    if (!thumb.complete || thumb.naturalWidth === 0) return;
+                    const mainLink = cardItem.querySelector('.main-link');
+                    const currentSrc = mainImg.src;
+                    const currentLink = mainLink.href;
+                    mainImg.retryDone = false;
+                    mainImg.src = versionImageSrc;
+                    mainLink.href = versionLink;
+                    mainImg.onerror = function() {
+                      if (!mainImg.retryDone) {
+                        mainImg.retryDone = true;
+                        mainImg.src = currentSrc;
+                        mainLink.href = currentLink;
+                      }
+                      mainImg.onerror = function() {
+                        if (mainImg.src !== mainImg.dataset.defaultSrc) {
+                          mainImg.src = mainImg.dataset.defaultSrc;
+                          mainLink.href = defaultLink;
+                        } else {
+                          mainImg.src = '../Pictures/placeholder.png';
+                        }
+                      };
+                    };
+                  }, 200));
+                  
+                  // On click, navigate to that version's page.
+                  thumb.addEventListener('click', function(e) {
+                    window.location.href = versionLink;
+                    e.stopPropagation();
+                  });
+                  thumbnailsContainer.appendChild(thumb);
+                });
+              } else {
+                thumbnailsContainer.style.display = 'none';
+              }
+              cardGrid.appendChild(cardItem);
+              return true;
+            })
+            .catch(err => {
+              // Skip this card group if no working image is found.
+              return false;
             });
-          } else {
-            // If no alternate art is found, hide the thumbnails container.
-            thumbnailsContainer.style.display = 'none';
-          }
-          
-          cardGrid.appendChild(cardItem);
         });
-        
-        updateCardVisibility();
+        Promise.all(promises).then(() => {
+          updateCardVisibility();
+        });
       })
       .catch(error => console.error("Error loading card data:", error));
 
