@@ -357,7 +357,9 @@
           }
         const cardNameParam = getQueryParameter("card");
         const numberParam = getQueryParameter("number");
-        const artistParam = getQueryParameter("artist");          cardInfo = data.find(card => card.name === cardNameParam);
+        const artistParam = getQueryParameter("artist"); 
+          console.log("card:", cardNameParam, "number:", numberParam, "artist:", artistParam);
+          cardInfo = data.find(card => card.name === cardNameParam);
           if (!cardInfo) {
             cardInfo = data[0];
           }
