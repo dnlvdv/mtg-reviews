@@ -2,6 +2,15 @@
 <urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">
   
   <url>
+    <loc>https://dnlvdv.github.io/mtg-reviews/</loc>
+  </url>  
+  <url>
+    <loc>https://dnlvdv.github.io/mtg-reviews/Bloomburrow/</loc>
+  </url>
+  <url>
+    <loc>https://dnlvdv.github.io/mtg-reviews/aetherdrift/</loc>
+  </url>
+  <url>
     <loc>https://dnlvdv.github.io/mtg-reviews/Bloomburrow/cards_dynamic.html?card=Banishing%20Light&amp;number=1&amp;artist=Zoltan%20Boros</loc>
   </url>
   <url>
