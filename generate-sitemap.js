@@ -2,7 +2,7 @@ const fs = require('fs');
 const path = require('path');
 
 const domain = "https://dnlvdv.github.io/mtg-reviews/";
-const folders = ["Bloomburrow", "aetherdrift"]; // Ensure folder names match your repo structure
+const folders = ["Bloomburrow", "aetherdrift"]; // Ensure these match your repo structure
 
 // Map folder names to the correct JSON file names.
 const jsonFiles = {
@@ -15,7 +15,6 @@ const generateSitemap = () => {
     xml += `<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
     folders.forEach(folder => {
-        // Use the mapped filename or fall back to folder.json
         const jsonPath = path.join(folder, jsonFiles[folder] || `${folder}.json`);
         
         if (!fs.existsSync(jsonPath)) {
@@ -23,9 +22,15 @@ const generateSitemap = () => {
             return;
         }
 
-        let cardsData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+        let cardsData;
+        try {
+            cardsData = JSON.parse(fs.readFileSync(jsonPath, "utf-8"));
+        } catch (error) {
+            console.error(`Error parsing JSON file: ${jsonPath}`, error);
+            return;
+        }
         
-        // If the parsed data isn't an array, check if it has a "cards" property.
+        // Check if cardsData is an array or has a 'cards' property.
         if (!Array.isArray(cardsData)) {
             if (cardsData.cards && Array.isArray(cardsData.cards)) {
                 cardsData = cardsData.cards;
@@ -35,9 +40,12 @@ const generateSitemap = () => {
             }
         }
 
+        // Log how many cards we found in this folder.
+        console.log(`Found ${cardsData.length} cards in ${jsonPath}`);
+
         cardsData.forEach(card => {
-            // Compute URL for each card page.
-            const url = `${domain}${folder}/${encodeURIComponent(card.name.replace(/\s+/g, '-'))}.html`;
+            // Build URL using query parameters.
+            const url = `${domain}${folder}/cards_dynamic.html?card=${encodeURIComponent(card.name)}&number=${encodeURIComponent(card.number)}&artist=${encodeURIComponent(card.artist)}`;
             xml += `  <url>\n    <loc>${url}</loc>\n  </url>\n`;
         });
     });
@@ -45,7 +53,7 @@ const generateSitemap = () => {
     xml += `</urlset>`;
 
     fs.writeFileSync('sitemap.xml', xml);
-    console.log('Sitemap generated successfully.');
+    console.log('Sitemap generated successfully at sitemap.xml');
 };
 
 generateSitemap();
