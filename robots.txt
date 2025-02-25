@@ -1,0 +1,4 @@
+User-agent: *
+Disallow:
+
+Sitemap: https://dnlvdv.github.io/mtg-reviews/sitemap.xml
