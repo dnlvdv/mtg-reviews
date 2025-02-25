@@ -2,13 +2,18 @@ const fs = require('fs');
 const path = require('path');
 
 const domain = "https://dnlvdv.github.io/mtg-reviews/";
-const folders = ["Bloomburrow", "Aetherdrift"]; // Add more folders as needed
+const folders = ["Bloomburrow", "aetherdrift"]; // Add more folders as needed
 
 const generateSitemap = () => {
     let xml = `<?xml version="1.0" encoding="UTF-8"?>\n<urlset xmlns="http://www.sitemaps.org/schemas/sitemap/0.9">\n`;
 
-    folders.forEach(folder => {
-        const jsonPath = path.join(folder, `${folder}.json`);
+const jsonFiles = {
+    "Bloomburrow": "blb.json",
+    "Aetherdrift": "DFT.json"
+};
+
+folders.forEach(folder => {
+    const jsonPath = path.join(folder, jsonFiles[folder] || `${folder}.json`);
         
         if (!fs.existsSync(jsonPath)) {
             console.error(`JSON file missing: ${jsonPath}`);
