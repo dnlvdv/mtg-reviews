@@ -3,7 +3,8 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- The title and description will be updated dynamically -->
+  <!-- Set the base URL for all relative links -->
+  <base href="/mtg-reviews/Bloomburrow/">
   <title>Card Review</title>
   <meta name="description" content="Card Review">
   <!-- Comfortaa font from Google Fonts -->
@@ -60,10 +61,10 @@
     }
     /* Container */
     .container {
-      max-width: 1000px; /* container width */
+      max-width: 1000px;
       width: 100%;
       background: #1f1f1f;
-      margin-top: 60px; /* leaves space for nav */
+      margin-top: 60px;
       margin-bottom: 40px;
       padding: 20px;
       border-radius: 10px;
@@ -255,7 +256,7 @@
 </head>
 <body>
 
-  <!-- Updated Navigation: Use clean URLs in your links -->
+  <!-- Navigation with clean URLs -->
   <nav>
     <a href="https://dnlvdv.github.io/mtg-reviews/" class="home-link">Home</a>
     <div class="nav-center">
@@ -315,22 +316,21 @@
   <div id="magnifier"></div>
 
   <script>
-    // STEP 1: Use the History API & parse clean URLs.
-    // This function checks if the URL path follows the clean URL pattern.
+    // STEP 1: Parse clean URLs using the History API.
     function parseCleanURL() {
-      // Example expected path: /mtg-reviews/Bloomburrow/46/dire-downdraft
+      // Expected path: /mtg-reviews/Bloomburrow/46/dire-downdraft
       const parts = window.location.pathname.split('/').filter(Boolean);
-      if (parts.length >= 4) {
+      if (parts.length >= 3) {
         return {
-          folder: parts[1],         // e.g., "Bloomburrow"
-          cardNumber: parts[2],       // e.g., "46"
-          cardSlug: parts[3]          // e.g., "dire-downdraft"
+          folder: parts[1],      // "Bloomburrow"
+          cardNumber: parts[2],    // "46"
+          cardSlug: parts[3]       // "dire-downdraft"
         };
       }
       return null;
     }
     
-    // Fallback: get query parameters if needed.
+    // Fallback: Get query parameters.
     function getQueryParameter(name) {
       const params = new URLSearchParams(window.location.search);
       return params.get(name);
@@ -343,22 +343,20 @@
       const cleanParams = parseCleanURL();
       
       if (cleanParams) {
-        // Convert URL slug (e.g., "dire-downdraft") to a readable card name ("Dire Downdraft")
+        // Convert the URL slug into a readable card name.
         cardNameParam = cleanParams.cardSlug.split('-')
                             .map(word => word.charAt(0).toUpperCase() + word.slice(1))
                             .join(' ');
         numberParam = cleanParams.cardNumber;
-        // Optionally try to read the artist from query string if needed
         artistParam = getQueryParameter("artist") || "";
       } else {
-        // Fallback to query parameters for older links
         cardNameParam = getQueryParameter("card");
         numberParam = getQueryParameter("number");
         artistParam = getQueryParameter("artist");
       }
       
-      // Fetch card data from blb.json (located in the same directory)
-      fetch('./blb.json')
+      // STEP 2: Fetch card data (using an absolute path relative to the base tag).
+      fetch('blb.json')
         .then(response => response.json())
         .then(data => {
           if (data.data && Array.isArray(data.data.cards)) {
@@ -367,7 +365,6 @@
             data = [data];
           }
           console.log("card:", cardNameParam, "number:", numberParam, "artist:", artistParam);
-          // Try to match the card based on name (case-insensitive) and number if provided.
           if (cardNameParam && numberParam) {
             cardInfo = data.find(card => card.name.toLowerCase() === cardNameParam.toLowerCase() && card.number === numberParam);
           }
@@ -375,7 +372,7 @@
             cardInfo = data.find(card => card.name.toLowerCase() === cardNameParam.toLowerCase()) || data[0];
           }
 
-          // STEP 2: Update document title and meta description dynamically.
+          // STEP 3: Dynamically update document title and meta description.
           document.title = cardInfo.name + " Card Review";
           let metaDesc = document.querySelector('meta[name="description"]');
           if (!metaDesc) {
@@ -386,7 +383,7 @@
           metaDesc.setAttribute("content", "In-depth review of " + cardInfo.name + ". Explore its strengths, weaknesses, oracle text, flavor text, and more.");
 
           // Construct the image path.
-          let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[^\w]/g, '_');
+          let cardPicture = "Pictures 2/" + cardInfo.name.replace(/[^\w]/g, '_');
           if (numberParam && artistParam) {
             cardPicture += "_" + numberParam + "_" + artistParam.replace(/[^\w]/g, '_') + ".png";
           } else if (cardInfo.number && cardInfo.artist) {
@@ -399,10 +396,10 @@
           cardImgElement.alt = cardInfo.name;
           cardImgElement.addEventListener('error', function() {
             if (this.src.includes('Pictures%202') || this.src.includes('Pictures 2')) {
-              let fallbackPicture = "../Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
+              let fallbackPicture = "Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
               this.src = fallbackPicture;
             } else {
-              this.src = "../Pictures/placeholder.png";
+              this.src = "Pictures/placeholder.png";
             }
           });
 
@@ -422,183 +419,13 @@
       function parseManaCost(manaCost) {
         if (!manaCost) return '';
         return manaCost
-          .replace(/\{1\}/g, '<img src="../Pictures/1.png" alt="1" class="mana-symbol">')
-          .replace(/\{2\}/g, '<img src="../Pictures/2.png" alt="2" class="mana-symbol">')
-          .replace(/\{3\}/g, '<img src="../Pictures/3.png" alt="3" class="mana-symbol">')
-          .replace(/\{4\}/g, '<img src="../Pictures/4.png" alt="4" class="mana-symbol">')
-          .replace(/\{5\}/g, '<img src="../Pictures/5.png" alt="5" class="mana-symbol">')
-          .replace(/\{6\}/g, '<img src="../Pictures/6.png" alt="6" class="mana-symbol">')
-          .replace(/\{7\}/g, '<img src="../Pictures/7.png" alt="7" class="mana-symbol">')
-          .replace(/\{8\}/g, '<img src="../Pictures/8.png" alt="8" class="mana-symbol">')
-          .replace(/\{9\}/g, '<img src="../Pictures/9.png" alt="9" class="mana-symbol">')
-          .replace(/\{W\}/g, '<img src="../Pictures/White.png" alt="White" class="mana-symbol">')
-          .replace(/\{U\}/g, '<img src="../Pictures/Blue.png" alt="Blue" class="mana-symbol">')
-          .replace(/\{B\}/g, '<img src="../Pictures/Black.png" alt="Black" class="mana-symbol">')
-          .replace(/\{R\}/g, '<img src="../Pictures/Red.png" alt="Red" class="mana-symbol">')
-          .replace(/\{G\}/g, '<img src="../Pictures/Green.png" alt="Green" class="mana-symbol">');
-      }
-
-      // STEP 4: Update browser history when navigating.
-      // For example, if you later add an in-page navigation to another card:
-      window.navigateToCard = function(cardNumber, cardName) {
-        const slug = cardName.toLowerCase().replace(/\s+/g, '-');
-        const newURL = `/mtg-reviews/Bloomburrow/${cardNumber}/${slug}`;
-        history.pushState({ cardNumber, cardName }, '', newURL);
-        // Here you could update the page content dynamically
-        location.reload(); // Or update dynamically without a full reload.
-      };
-
-      // Handle the popstate event (back/forward buttons)
-      window.addEventListener('popstate', function(event) {
-        location.reload();
-      });
-
-      // Copy card info function.
-      window.copyCardInfo = function() {
-        const info = (cardInfo.name || "") + " - " + (cardInfo.manaCost || "") + "\n" +
-                     "Type: " + (cardInfo.type || "") + "\n" +
-                     "Text: " + (cardInfo.text || "") + "\n" +
-                     "Flavor: " + (cardInfo.flavorText || "") + "\n" +
-                     "Artist: " + (cardInfo.artist || "");
-        navigator.clipboard.writeText(info)
-          .then(() => alert("Card info copied to clipboard!"))
-          .catch(err => alert("Error copying card info: " + err));
-      };
-
-      // Initialize Supabase for review submission and fetching.
-      const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
-      const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
-      const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
-
-      // Star rating functionality.
-      let selectedRating = 0;
-      const stars = document.querySelectorAll('.star');
-      function updateStars(rating, className) {
-        stars.forEach(star => {
-          if (parseInt(star.getAttribute('data-value')) <= rating) {
-            star.classList.add(className);
-          } else {
-            star.classList.remove(className);
-          }
-        });
-      }
-      function updateSelectedStars() {
-        stars.forEach(star => {
-          if (parseInt(star.getAttribute('data-value')) <= selectedRating) {
-            star.classList.add('selected');
-          } else {
-            star.classList.remove('selected');
-          }
-        });
-      }
-      stars.forEach(star => {
-        star.addEventListener('mouseover', function() {
-          const rating = parseInt(this.getAttribute('data-value'));
-          updateStars(rating, 'hovered');
-        });
-        star.addEventListener('mouseout', function() {
-          stars.forEach(s => s.classList.remove('hovered'));
-          updateSelectedStars();
-        });
-        star.addEventListener('click', function() {
-          selectedRating = parseInt(this.getAttribute('data-value'));
-          updateSelectedStars();
-        });
-      });
-
-      // Submit review function.
-      window.submitReview = async function() {
-        const comment = document.getElementById("comment").value.trim();
-        if (!selectedRating || !comment) {
-          alert("Please provide a rating and a comment.");
-          return;
-        }
-        const review = {
-          card: cardInfo.name,
-          rating: selectedRating,
-          comment: comment
-        };
-        const { data, error } = await supabaseClient
-          .from('reviews')
-          .insert([review]);
-        if (error) {
-          console.error("Error submitting review:", error);
-          alert("There was an error submitting your review.");
-          return;
-        }
-        selectedRating = 0;
-        updateSelectedStars();
-        document.getElementById("comment").value = "";
-        loadReviews();
-      };
-
-      // Load reviews function.
-      async function loadReviews() {
-        if (!cardInfo) return;
-        const reviewList = document.getElementById("reviewList");
-        reviewList.innerHTML = "";
-        const { data: reviews, error } = await supabaseClient
-          .from('reviews')
-          .select('*')
-          .eq('card', cardInfo.name)
-          .order('created_at', { ascending: false });
-        if (error) {
-          console.error("Error loading reviews:", error);
-          return;
-        }
-        reviews.forEach(review => {
-          const div = document.createElement("div");
-          div.className = "review-item";
-          div.innerHTML = `<strong>Rating: ${'★'.repeat(review.rating)}</strong><span>${review.comment}</span>`;
-          reviewList.appendChild(div);
-        });
-      }
-
-      // Modal for full-screen zoom.
-      const modal = document.getElementById("imageModal");
-      const modalImg = document.getElementById("modalImg");
-      const closeBtn = document.querySelector(".close");
-      const cardImage = document.getElementById("cardImage");
-      cardImage.addEventListener('click', function() {
-        modal.style.display = "block";
-        modalImg.src = this.src;
-      });
-      closeBtn.addEventListener('click', function() {
-        modal.style.display = "none";
-      });
-      modal.addEventListener('click', function(e) {
-        if (e.target === modal) {
-          modal.style.display = "none";
-        }
-      });
-
-      // Magnifier functionality.
-      const magnifier = document.getElementById("magnifier");
-      const zoomLevel = 2;
-      const magnifierSize = 300;
-      cardImage.addEventListener("mousemove", function(e) {
-        cardImage.style.cursor = "none";
-        const rect = cardImage.getBoundingClientRect();
-        const x = e.clientX - rect.left;
-        const y = e.clientY - rect.top;
-        magnifier.style.display = "block";
-        const magnifierX = e.pageX - magnifierSize / 2;
-        const magnifierY = e.pageY - magnifierSize / 2;
-        magnifier.style.left = magnifierX + "px";
-        magnifier.style.top = magnifierY + "px";
-        magnifier.style.backgroundImage = "url(" + cardImage.src + ")";
-        const imgWidth = cardImage.clientWidth;
-        const imgHeight = cardImage.clientHeight;
-        magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
-        const bgX = -((x * zoomLevel) - magnifierSize / 2);
-        const bgY = -((y * zoomLevel) - magnifierSize / 2);
-        magnifier.style.backgroundPosition = bgX + "px " + bgY + "px";
-      });
-      cardImage.addEventListener("mouseleave", function() {
-        magnifier.style.display = "none";
-        cardImage.style.cursor = "zoom-in";
-      });
-    });
-  </script>
-</body>
-</html>
+          .replace(/\{1\}/g, '<img src="Pictures/1.png" alt="1" class="mana-symbol">')
+          .replace(/\{2\}/g, '<img src="Pictures/2.png" alt="2" class="mana-symbol">')
+          .replace(/\{3\}/g, '<img src="Pictures/3.png" alt="3" class="mana-symbol">')
+          .replace(/\{4\}/g, '<img src="Pictures/4.png" alt="4" class="mana-symbol">')
+          .replace(/\{5\}/g, '<img src="Pictures/5.png" alt="5" class="mana-symbol">')
+          .replace(/\{6\}/g, '<img src="Pictures/6.png" alt="6" class="mana-symbol">')
+          .replace(/\{7\}/g, '<img src="Pictures/7.png" alt="7" class="mana-symbol">')
+          .replace(/\{8\}/g, '<img src="Pictures/8.png" alt="8" class="mana-symbol">')
+          .replace(/\{9\}/g, '<img src="Pictures/9.png" alt="9" class="mana-symbol">')
+          .replace(/\{W\}/g,
