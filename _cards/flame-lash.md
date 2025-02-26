@@ -7,7 +7,7 @@ manaCost: "{3}{R}"
 number: "391"
 type: "Instant"
 text: "Flame Lash deals 4 damage to any target."
-flavorText: ""This is just my warm-up.""
+flavorText: "'This is just my warm-up.'"
 artist: "Viktor Titov"
 image: "/Pictures/Flame_Lash.png"
 ---
