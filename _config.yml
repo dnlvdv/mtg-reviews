@@ -1,1 +1,5 @@
 title: "MTG Card Reviews"
+collections:
+  cards:
+    output: true
+    permalink: /cards/:slug.html
