@@ -265,12 +265,10 @@
   <div class="container">
     <div class="card-container">
       <div class="card-art">
-        <!-- Removed inline onerror attribute to implement fallback in JS -->
         <img id="cardImage" src="" alt="Card Art">
       </div>
       <div class="card-details">
         <div class="card-title" id="cardTitle"></div>
-        
         <div class="card-section">
           <h3>Card types</h3>
           <p id="cardType"></p>
@@ -287,7 +285,6 @@
           <h3>Artist</h3>
           <p id="cardArtist"></p>
         </div>
-        
         <button class="copy-btn" onclick="copyCardInfo()">Copy Card Info</button>
       </div>
     </div>
@@ -320,7 +317,13 @@
       console.log("Script loaded!");
       let cardInfo;
       
-      // Replace mana symbols with images (including digits 1-9).
+      // Helper to get query parameter
+      function getQueryParameter(name) {
+        const params = new URLSearchParams(window.location.search);
+        return params.get(name);
+      }
+
+      // Replace mana symbols with images.
       function parseManaCost(manaCost) {
         if (!manaCost) return '';
         return manaCost
@@ -340,39 +343,37 @@
           .replace(/\{G\}/g, '<img src="../Pictures/Green.png" alt="Green" class="mana-symbol">');
       }
 
-      // Helper to get query parameter
-      function getQueryParameter(name) {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name);
-      }
-
-      // Fetch card data from blb.json in the same directory
+      // Fetch card data from blb.json
       fetch('./blb.json')
         .then(response => response.json())
         .then(data => {
+          // Normalize data structure if needed.
           if (data.data && Array.isArray(data.data.cards)) {
             data = data.data.cards;
           } else if (!Array.isArray(data)) {
             data = [data];
           }
+          
           const cardNameParam = getQueryParameter("card");
           const numberParam = getQueryParameter("number");
           const artistParam = getQueryParameter("artist"); 
           console.log("card:", cardNameParam, "number:", numberParam, "artist:", artistParam);
           
-          // Filter card by both name and collector number (if provided)
-          if (cardNameParam && numberParam) {
-            cardInfo = data.find(card => card.name === cardNameParam && card.number === numberParam);
+          // Find the current card index using name, number, and artist.
+          let currentIndex = data.findIndex(card =>
+            card.name === cardNameParam &&
+            card.number === numberParam &&
+            card.artist === artistParam
+          );
+          if (currentIndex === -1) {
+            // Fallback: try to find by card name only.
+            currentIndex = data.findIndex(card => card.name === cardNameParam);
+            if (currentIndex === -1) currentIndex = 0;
           }
-          // Fallback: If no exact match, try filtering by name only or use the first card
-          if (!cardInfo) {
-            cardInfo = data.find(card => card.name === cardNameParam) || data[0];
-          }
+          cardInfo = data[currentIndex];
 
-          // Update the document title
+          // Update the document title and meta description.
           document.title = cardInfo.name + " Card Review";
-
-          // Update (or create) the meta description
           let metaDesc = document.querySelector('meta[name="description"]');
           if (!metaDesc) {
             metaDesc = document.createElement('meta');
@@ -382,7 +383,6 @@
           metaDesc.setAttribute("content", "In-depth review of " + cardInfo.name + ". Explore its strengths, weaknesses, oracle text, flavor text, and more.");
 
           // Construct the image path.
-          // Using "Pictures 2" folder and new naming convention if number and artist are provided.
           let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[^\w]/g, '_');
           if (numberParam && artistParam) {
             cardPicture += "_" + numberParam + "_" + artistParam.replace(/[^\w]/g, '_') + ".png";
@@ -396,7 +396,7 @@
           cardImgElement.src = cardPicture;
           cardImgElement.alt = cardInfo.name;
           
-          // Fallback: If the new image fails to load, try the old image from "Pictures" folder.
+          // Fallback: If the new image fails to load, try the old image.
           cardImgElement.addEventListener('error', function() {
               if (this.src.includes('Pictures%202') || this.src.includes('Pictures 2')) {
                   let fallbackPicture = "../Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
@@ -406,21 +406,37 @@
               }
           });
 
-          // Insert card data
+          // Insert card data into the DOM.
           const titleEl = document.getElementById("cardTitle");
           titleEl.innerHTML = cardInfo.name + " - " + parseManaCost(cardInfo.manaCost);
-          
           document.getElementById("cardType").textContent = cardInfo.type || "";
           document.getElementById("cardText").textContent = cardInfo.text || "";
           document.getElementById("cardFlavor").textContent = cardInfo.flavorText || "";
           document.getElementById("cardArtist").textContent = "Artist: " + (cardInfo.artist || "");
+
+          // Create a link to the next card if available.
+          if (currentIndex !== -1 && currentIndex < data.length - 1) {
+            const nextCard = data[currentIndex + 1];
+            const nextCardUrl = window.location.pathname +
+              "?card=" + encodeURIComponent(nextCard.name) +
+              "&number=" + encodeURIComponent(nextCard.number) +
+              "&artist=" + encodeURIComponent(nextCard.artist);
+            const nextLink = document.createElement("a");
+            nextLink.href = nextCardUrl;
+            nextLink.textContent = "Next card: " + nextCard.name;
+            nextLink.style.display = "block";
+            nextLink.style.marginTop = "20px";
+            nextLink.style.fontSize = "1.1rem";
+            nextLink.style.color = "#ff9900";
+            document.querySelector(".container").appendChild(nextLink);
+          }
           
-          // Load existing reviews
+          // Load existing reviews.
           loadReviews();
         })
         .catch(error => console.error("Error loading card data:", error));
 
-      // Copy card info
+      // Copy card info function.
       window.copyCardInfo = function() {
         const info = (cardInfo.name || "") + " - " + (cardInfo.manaCost || "") + "\n" +
                      "Type: " + (cardInfo.type || "") + "\n" +
@@ -432,12 +448,12 @@
           .catch(err => alert("Error copying card info: " + err));
       };
 
-      // Supabase init
+      // Supabase initialization.
       const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
       const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-      // Star rating
+      // Star rating.
       let selectedRating = 0;
       const stars = document.querySelectorAll('.star');
       function updateStars(rating, className) {
@@ -473,7 +489,7 @@
         });
       });
 
-      // Submit review
+      // Submit review.
       window.submitReview = async function() {
         const comment = document.getElementById("comment").value.trim();
         if (!selectedRating || !comment) {
@@ -499,7 +515,7 @@
         loadReviews();
       };
 
-      // Load reviews
+      // Load reviews.
       async function loadReviews() {
         if (!cardInfo) return;
         const reviewList = document.getElementById("reviewList");
@@ -521,7 +537,7 @@
         });
       }
 
-      // Modal for full-screen zoom
+      // Modal for full-screen zoom.
       const modal = document.getElementById("imageModal");
       const modalImg = document.getElementById("modalImg");
       const closeBtn = document.querySelector(".close");
@@ -540,7 +556,7 @@
         }
       });
 
-      // Magnifier
+      // Magnifier functionality.
       const magnifier = document.getElementById("magnifier");
       const zoomLevel = 2;
       const magnifierSize = 300;
@@ -549,7 +565,6 @@
         const rect = cardImage.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-
         magnifier.style.display = "block";
         const magnifierX = e.pageX - magnifierSize / 2;
         const magnifierY = e.pageY - magnifierSize / 2;
@@ -559,7 +574,6 @@
         const imgWidth = cardImage.clientWidth;
         const imgHeight = cardImage.clientHeight;
         magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
-
         const bgX = -((x * zoomLevel) - magnifierSize / 2);
         const bgY = -((y * zoomLevel) - magnifierSize / 2);
         magnifier.style.backgroundPosition = bgX + "px " + bgY + "px";
