@@ -43,7 +43,7 @@ data.forEach(card => {
   frontMatter += `type: "${card.type || ''}"\n`;
   // Replace newlines in text fields with literal \n for YAML
   frontMatter += `text: "${(card.text || '').replace(/\n/g, '\\n')}"\n`;
-  frontMatter += `flavorText: "${(card.flavorText || '').replace(/\n/g, '\\n')}"\n`;
+  frontMatter += `flavorText: "${(card.flavorText || '').replace(/"/g, "'").replace(/\n/g, '\\n')}"\n`;
   frontMatter += `artist: "${card.artist || ''}"\n`;
   // Assume image is built by replacing spaces with underscores in the card name
   const imageName = card.name.replace(/\s+/g, '_') + ".png";
