@@ -3,8 +3,9 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title></title>
-  <meta name="description" content="">
+  <!-- The title and description will be updated dynamically -->
+  <title>Card Review</title>
+  <meta name="description" content="Card Review">
   <!-- Comfortaa font from Google Fonts -->
   <link href="https://fonts.googleapis.com/css2?family=Comfortaa:wght@300;400;700&display=swap" rel="stylesheet">
   <style>
@@ -79,7 +80,6 @@
       flex: 1;
       max-width: 280px;
     }
-    /* Removed inline onerror attribute from the below img */
     #cardImage {
       width: 100%;
       border-radius: 6px;
@@ -98,7 +98,7 @@
     .card-title {
       font-size: 1.5rem;
       font-weight: 700;
-      color: #ff9900; /* accent color for the card title */
+      color: #ff9900;
     }
     /* Card sections */
     .card-section {
@@ -250,27 +250,27 @@
       box-shadow: 0 0 5px rgba(0,0,0,0.5);
     }
   </style>
+  <!-- Supabase library -->
   <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
 </head>
 <body>
 
+  <!-- Updated Navigation: Use clean URLs in your links -->
   <nav>
-    <a href="https://dnlvdv.github.io/mtg-reviews/filter-page.html" class="home-link">Home</a>
+    <a href="https://dnlvdv.github.io/mtg-reviews/" class="home-link">Home</a>
     <div class="nav-center">
-      <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
-      <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>
+      <a href="/mtg-reviews/aetherdrift/">Aether Drift</a>
+      <a href="/mtg-reviews/Bloomburrow/">Bloomburrow</a>
     </div>
   </nav>
 
   <div class="container">
     <div class="card-container">
       <div class="card-art">
-        <!-- Removed inline onerror attribute to implement fallback in JS -->
         <img id="cardImage" src="" alt="Card Art">
       </div>
       <div class="card-details">
         <div class="card-title" id="cardTitle"></div>
-        
         <div class="card-section">
           <h3>Card types</h3>
           <p id="cardType"></p>
@@ -287,7 +287,6 @@
           <h3>Artist</h3>
           <p id="cardArtist"></p>
         </div>
-        
         <button class="copy-btn" onclick="copyCardInfo()">Copy Card Info</button>
       </div>
     </div>
@@ -316,11 +315,110 @@
   <div id="magnifier"></div>
 
   <script>
+    // STEP 1: Use the History API & parse clean URLs.
+    // This function checks if the URL path follows the clean URL pattern.
+    function parseCleanURL() {
+      // Example expected path: /mtg-reviews/Bloomburrow/46/dire-downdraft
+      const parts = window.location.pathname.split('/').filter(Boolean);
+      if (parts.length >= 4) {
+        return {
+          folder: parts[1],         // e.g., "Bloomburrow"
+          cardNumber: parts[2],       // e.g., "46"
+          cardSlug: parts[3]          // e.g., "dire-downdraft"
+        };
+      }
+      return null;
+    }
+    
+    // Fallback: get query parameters if needed.
+    function getQueryParameter(name) {
+      const params = new URLSearchParams(window.location.search);
+      return params.get(name);
+    }
+
     document.addEventListener("DOMContentLoaded", function() {
       console.log("Script loaded!");
       let cardInfo;
+      let cardNameParam, numberParam, artistParam;
+      const cleanParams = parseCleanURL();
       
-      // Replace mana symbols with images (including digits 1-9).
+      if (cleanParams) {
+        // Convert URL slug (e.g., "dire-downdraft") to a readable card name ("Dire Downdraft")
+        cardNameParam = cleanParams.cardSlug.split('-')
+                            .map(word => word.charAt(0).toUpperCase() + word.slice(1))
+                            .join(' ');
+        numberParam = cleanParams.cardNumber;
+        // Optionally try to read the artist from query string if needed
+        artistParam = getQueryParameter("artist") || "";
+      } else {
+        // Fallback to query parameters for older links
+        cardNameParam = getQueryParameter("card");
+        numberParam = getQueryParameter("number");
+        artistParam = getQueryParameter("artist");
+      }
+      
+      // Fetch card data from blb.json (located in the same directory)
+      fetch('./blb.json')
+        .then(response => response.json())
+        .then(data => {
+          if (data.data && Array.isArray(data.data.cards)) {
+            data = data.data.cards;
+          } else if (!Array.isArray(data)) {
+            data = [data];
+          }
+          console.log("card:", cardNameParam, "number:", numberParam, "artist:", artistParam);
+          // Try to match the card based on name (case-insensitive) and number if provided.
+          if (cardNameParam && numberParam) {
+            cardInfo = data.find(card => card.name.toLowerCase() === cardNameParam.toLowerCase() && card.number === numberParam);
+          }
+          if (!cardInfo) {
+            cardInfo = data.find(card => card.name.toLowerCase() === cardNameParam.toLowerCase()) || data[0];
+          }
+
+          // STEP 2: Update document title and meta description dynamically.
+          document.title = cardInfo.name + " Card Review";
+          let metaDesc = document.querySelector('meta[name="description"]');
+          if (!metaDesc) {
+            metaDesc = document.createElement('meta');
+            metaDesc.setAttribute("name", "description");
+            document.head.appendChild(metaDesc);
+          }
+          metaDesc.setAttribute("content", "In-depth review of " + cardInfo.name + ". Explore its strengths, weaknesses, oracle text, flavor text, and more.");
+
+          // Construct the image path.
+          let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[^\w]/g, '_');
+          if (numberParam && artistParam) {
+            cardPicture += "_" + numberParam + "_" + artistParam.replace(/[^\w]/g, '_') + ".png";
+          } else if (cardInfo.number && cardInfo.artist) {
+            cardPicture += "_" + cardInfo.number + "_" + cardInfo.artist.replace(/[^\w]/g, '_') + ".png";
+          } else {
+            cardPicture += ".png";
+          }
+          const cardImgElement = document.getElementById("cardImage");
+          cardImgElement.src = cardPicture;
+          cardImgElement.alt = cardInfo.name;
+          cardImgElement.addEventListener('error', function() {
+            if (this.src.includes('Pictures%202') || this.src.includes('Pictures 2')) {
+              let fallbackPicture = "../Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
+              this.src = fallbackPicture;
+            } else {
+              this.src = "../Pictures/placeholder.png";
+            }
+          });
+
+          // Insert card data into the page.
+          document.getElementById("cardTitle").innerHTML = cardInfo.name + " - " + parseManaCost(cardInfo.manaCost);
+          document.getElementById("cardType").textContent = cardInfo.type || "";
+          document.getElementById("cardText").textContent = cardInfo.text || "";
+          document.getElementById("cardFlavor").textContent = cardInfo.flavorText || "";
+          document.getElementById("cardArtist").textContent = "Artist: " + (cardInfo.artist || "");
+
+          // Load existing reviews.
+          loadReviews();
+        })
+        .catch(error => console.error("Error loading card data:", error));
+
+      // Function to convert mana cost strings into images.
       function parseManaCost(manaCost) {
         if (!manaCost) return '';
         return manaCost
@@ -340,87 +438,22 @@
           .replace(/\{G\}/g, '<img src="../Pictures/Green.png" alt="Green" class="mana-symbol">');
       }
 
-      // Helper to get query parameter
-      function getQueryParameter(name) {
-        const params = new URLSearchParams(window.location.search);
-        return params.get(name);
-      }
+      // STEP 4: Update browser history when navigating.
+      // For example, if you later add an in-page navigation to another card:
+      window.navigateToCard = function(cardNumber, cardName) {
+        const slug = cardName.toLowerCase().replace(/\s+/g, '-');
+        const newURL = `/mtg-reviews/Bloomburrow/${cardNumber}/${slug}`;
+        history.pushState({ cardNumber, cardName }, '', newURL);
+        // Here you could update the page content dynamically
+        location.reload(); // Or update dynamically without a full reload.
+      };
 
-      // Fetch card data from blb.json in the same directory
-      fetch('./blb.json')
-        .then(response => response.json())
-        .then(data => {
-          if (data.data && Array.isArray(data.data.cards)) {
-            data = data.data.cards;
-          } else if (!Array.isArray(data)) {
-            data = [data];
-          }
-          const cardNameParam = getQueryParameter("card");
-          const numberParam = getQueryParameter("number");
-          const artistParam = getQueryParameter("artist"); 
-          console.log("card:", cardNameParam, "number:", numberParam, "artist:", artistParam);
-          
-          // Filter card by both name and collector number (if provided)
-          if (cardNameParam && numberParam) {
-            cardInfo = data.find(card => card.name === cardNameParam && card.number === numberParam);
-          }
-          // Fallback: If no exact match, try filtering by name only or use the first card
-          if (!cardInfo) {
-            cardInfo = data.find(card => card.name === cardNameParam) || data[0];
-          }
+      // Handle the popstate event (back/forward buttons)
+      window.addEventListener('popstate', function(event) {
+        location.reload();
+      });
 
-          // Update the document title
-          document.title = cardInfo.name + " Card Review";
-
-          // Update (or create) the meta description
-          let metaDesc = document.querySelector('meta[name="description"]');
-          if (!metaDesc) {
-            metaDesc = document.createElement('meta');
-            metaDesc.setAttribute("name", "description");
-            document.head.appendChild(metaDesc);
-          }
-          metaDesc.setAttribute("content", "In-depth review of " + cardInfo.name + ". Explore its strengths, weaknesses, oracle text, flavor text, and more.");
-
-          // Construct the image path.
-          // Using "Pictures 2" folder and new naming convention if number and artist are provided.
-          let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[^\w]/g, '_');
-          if (numberParam && artistParam) {
-            cardPicture += "_" + numberParam + "_" + artistParam.replace(/[^\w]/g, '_') + ".png";
-          } else if (cardInfo.number && cardInfo.artist) {
-            cardPicture += "_" + cardInfo.number + "_" + cardInfo.artist.replace(/[^\w]/g, '_') + ".png";
-          } else {
-            cardPicture += ".png";
-          }
-          
-          const cardImgElement = document.getElementById("cardImage");
-          cardImgElement.src = cardPicture;
-          cardImgElement.alt = cardInfo.name;
-          
-          // Fallback: If the new image fails to load, try the old image from "Pictures" folder.
-          cardImgElement.addEventListener('error', function() {
-              if (this.src.includes('Pictures%202') || this.src.includes('Pictures 2')) {
-                  let fallbackPicture = "../Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
-                  this.src = fallbackPicture;
-              } else {
-                  this.src = "../Pictures/placeholder.png";
-              }
-          });
-
-          // Insert card data
-          const titleEl = document.getElementById("cardTitle");
-          titleEl.innerHTML = cardInfo.name + " - " + parseManaCost(cardInfo.manaCost);
-          
-          document.getElementById("cardType").textContent = cardInfo.type || "";
-          document.getElementById("cardText").textContent = cardInfo.text || "";
-          document.getElementById("cardFlavor").textContent = cardInfo.flavorText || "";
-          document.getElementById("cardArtist").textContent = "Artist: " + (cardInfo.artist || "");
-          
-          // Load existing reviews
-          loadReviews();
-        })
-        .catch(error => console.error("Error loading card data:", error));
-
-      // Copy card info
+      // Copy card info function.
       window.copyCardInfo = function() {
         const info = (cardInfo.name || "") + " - " + (cardInfo.manaCost || "") + "\n" +
                      "Type: " + (cardInfo.type || "") + "\n" +
@@ -432,12 +465,12 @@
           .catch(err => alert("Error copying card info: " + err));
       };
 
-      // Supabase init
+      // Initialize Supabase for review submission and fetching.
       const supabaseUrl = 'https://cjnoqupvonejyxrypmnc.supabase.co';
       const supabaseKey = 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6ImNqbm9xdXB2b25lanl4cnlwbW5jIiwicm9sZSI6ImFub24iLCJpYXQiOjE3MzkzODM3MjEsImV4cCI6MjA1NDk1OTcyMX0.oyZmoEV_bwANPArdrToZ3Z0VXhwy5rrcj_kerVSXkTQ';
       const supabaseClient = window.supabase.createClient(supabaseUrl, supabaseKey);
 
-      // Star rating
+      // Star rating functionality.
       let selectedRating = 0;
       const stars = document.querySelectorAll('.star');
       function updateStars(rating, className) {
@@ -473,7 +506,7 @@
         });
       });
 
-      // Submit review
+      // Submit review function.
       window.submitReview = async function() {
         const comment = document.getElementById("comment").value.trim();
         if (!selectedRating || !comment) {
@@ -499,7 +532,7 @@
         loadReviews();
       };
 
-      // Load reviews
+      // Load reviews function.
       async function loadReviews() {
         if (!cardInfo) return;
         const reviewList = document.getElementById("reviewList");
@@ -521,12 +554,11 @@
         });
       }
 
-      // Modal for full-screen zoom
+      // Modal for full-screen zoom.
       const modal = document.getElementById("imageModal");
       const modalImg = document.getElementById("modalImg");
       const closeBtn = document.querySelector(".close");
       const cardImage = document.getElementById("cardImage");
-
       cardImage.addEventListener('click', function() {
         modal.style.display = "block";
         modalImg.src = this.src;
@@ -540,7 +572,7 @@
         }
       });
 
-      // Magnifier
+      // Magnifier functionality.
       const magnifier = document.getElementById("magnifier");
       const zoomLevel = 2;
       const magnifierSize = 300;
@@ -549,7 +581,6 @@
         const rect = cardImage.getBoundingClientRect();
         const x = e.clientX - rect.left;
         const y = e.clientY - rect.top;
-
         magnifier.style.display = "block";
         const magnifierX = e.pageX - magnifierSize / 2;
         const magnifierY = e.pageY - magnifierSize / 2;
@@ -559,7 +590,6 @@
         const imgWidth = cardImage.clientWidth;
         const imgHeight = cardImage.clientHeight;
         magnifier.style.backgroundSize = (imgWidth * zoomLevel) + "px " + (imgHeight * zoomLevel) + "px";
-
         const bgX = -((x * zoomLevel) - magnifierSize / 2);
         const bgY = -((y * zoomLevel) - magnifierSize / 2);
         magnifier.style.backgroundPosition = bgX + "px " + bgY + "px";
