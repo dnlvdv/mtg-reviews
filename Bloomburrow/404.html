@@ -3,59 +3,230 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <!-- Set the base so all relative URLs are resolved from /mtg-reviews/ -->
   <base href="/mtg-reviews/">
-  <title>Card Review</title>
-  <meta name="description" content="Dynamic Card Review for Bloomburrow MTG cards">
-  <!-- Google Font -->
+  <title>All Bloomburrow cards - review MTG cards</title>
+  <meta name="description" content="Review Bloomburrow MTG cards, find reviews from others and learn about art, mechanics and our favorite game">
+  <!-- Modern Google Font -->
   <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+  
   <style>
-    /* Basic Styles */
+    /* ---------- Global Styles ---------- */
     body {
       font-family: 'Roboto', sans-serif;
-      background: #121212;
+      background: linear-gradient(135deg, #1e1e1e, #121212);
       color: #e0e0e0;
       margin: 0;
       padding: 20px;
     }
+    
     .container {
-      max-width: 800px;
+      max-width: 1200px;
       margin: 0 auto;
     }
+
+    /* ---------- Navigation ---------- */
     nav {
       display: flex;
       align-items: center;
       justify-content: space-between;
-      background: #292929;
+      background: linear-gradient(90deg, #1e1e1e, #292929);
       padding: 15px 20px;
-      box-shadow: 0 2px 10px rgba(0,0,0,0.3);
+      box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
       margin-bottom: 20px;
     }
+    
     nav a {
       color: #ffffff;
       text-decoration: none;
       font-size: 18px;
       font-weight: bold;
-      margin-right: 10px;
+      padding: 10px 20px;
+      border-radius: 5px;
+      transition: all 0.3s ease-in-out;
     }
-    .card-detail {
-      background: #2b2b2b;
-      padding: 20px;
-      border-radius: 10px;
+    
+    nav a:hover {
+      background: #ff6600;
+      color: #fff;
+      box-shadow: 0px 0px 10px rgba(255, 102, 0, 0.6);
     }
-    .card-detail h1 {
+    
+    .home-link {
+      margin-right: auto;
+    }
+    
+    .nav-center {
+      flex-grow: 1;
+      text-align: center;
+    }
+
+    /* ---------- Page Title ---------- */
+    h1 {
+      text-align: center;
+      margin-bottom: 20px;
       margin-top: 0;
     }
-    .card-image {
-      max-width: 100%;
+
+    /* ---------- Filter Input ---------- */
+    #filterInput {
+      width: 100%;
+      max-width: 400px;
+      padding: 10px;
+      margin: 0 auto 30px auto;
+      display: block;
+      border: none;
+      border-radius: 8px;
+      font-size: 16px;
+    }
+
+    /* ---------- Content Wrapper ---------- */
+    .content-wrapper {
+      display: flex;
+      gap: 20px;
+      min-height: 60vh;
+    }
+    
+    /* ---- Filter Sidebar (Left Column) ---- */
+    .filter-sidebar {
+      width: 80px;
+      padding: 20px;
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      background: #2b2b2b;
+      border-right: 2px solid #444;
+    }
+    
+    .filter-option {
+      width: 50px;
+      height: 50px;
+      margin-bottom: 15px;
+      border: 2px solid transparent;
+      border-radius: 50%;
+      overflow: hidden;
+      cursor: pointer;
+      transition: transform 0.3s, border 0.3s;
+    }
+    
+    .filter-option:hover {
+      transform: scale(1.1);
+    }
+    
+    .filter-option.active {
+      border-color: #ff6600;
+    }
+    
+    .filter-option img {
+      width: 100%;
+      height: 100%;
+      object-fit: cover;
+    }
+
+    /* ---------- Main Content (Right Column) ---------- */
+    .main-content {
+      flex: 1;
+    }
+
+    /* ---------- Card Grid ---------- */
+    .card-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+      gap: 20px;
+    }
+    
+    .card-item {
+      background: #2b2b2b;
+      padding: 10px;
+      border-radius: 10px;
+      box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+      text-align: center;
+      transition: transform 0.3s;
+    }
+    
+    .card-item:hover {
+      transform: translateY(-5px);
+    }
+    
+    .card-item h3 {
+      margin: 10px 0 0;
+    }
+    
+    /* ---------- Main Image and Thumbnails ---------- */
+    .main-link,
+    .main-link:visited {
+      text-decoration: none;
+      color: inherit;
+    }
+    
+    .main-image {
+      width: 100%;
+      height: auto;
+      border-radius: 8px;
+      cursor: pointer;
+    }
+    
+    .thumbnails {
+      display: flex;
+      flex-wrap: wrap;
+      margin-top: 5px;
+      justify-content: center;
+    }
+    
+    .thumb-image {
+      width: 40px;
+      height: auto;
+      border-radius: 4px;
+      margin: 2px;
+      cursor: pointer;
+    }
+    
+    /* ---------- Detail View Styles ---------- */
+    #detailView {
+      text-align: center;
+      padding: 20px;
+    }
+    
+    #detailImage {
+      max-width: 300px;
       border-radius: 8px;
       margin-bottom: 20px;
     }
-    .back-link {
-      display: inline-block;
-      margin-top: 20px;
-      color: #ff6600;
-      text-decoration: none;
+    
+    #backButton {
+      background: #ff6600;
+      color: #121212;
+      border: none;
+      padding: 10px 15px;
+      border-radius: 5px;
+      cursor: pointer;
+      margin-bottom: 20px;
+    }
+    
+    /* ---------- Responsive Adjustments ---------- */
+    @media (max-width: 600px) {
+      .content-wrapper {
+        flex-direction: column;
+      }
+      
+      .filter-sidebar {
+        width: 100%;
+        border-right: none;
+        border-bottom: 2px solid #444;
+        flex-direction: row;
+        justify-content: center;
+        gap: 10px;
+        padding: 10px;
+      }
+      
+      .filter-option {
+        width: 40px;
+        height: 40px;
+        margin-bottom: 0;
+      }
+      
+      .home-link {
+        margin: 0 0 10px 0;
+      }
     }
   </style>
 </head>
@@ -63,108 +234,208 @@
   <div class="container">
     <!-- Navigation Bar -->
     <nav>
-      <a href="/">Home</a>
-      <a href="Bloomburrow/">Bloomburrow</a>
+      <a href="https://dnlvdv.github.io/mtg-reviews/" class="home-link">Home</a>
+      <div class="nav-center">
+        <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
+        <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>        
+      </div>
     </nav>
 
-    <!-- Container for Card Details -->
-    <div id="cardDetail" class="card-detail">
-      <h1>Loading card details...</h1>
+    <!-- Two Main Views: Index (Card Listing) and Detail (Single Card Review) -->
+    <div id="indexView">
+      <!-- Page Title and Filter Input (Index View) -->
+      <h1>MTG Cards</h1>
+      <input type="text" id="filterInput" placeholder="Filter cards..." />
+      <!-- Main Two-Column Layout -->
+      <div class="content-wrapper">
+        <!-- Filter Sidebar (Left Column) -->
+        <aside class="filter-sidebar">
+          <div class="filter-option" data-color="W">
+            <img src="Pictures/White.png" alt="White" loading="lazy" />
+          </div>
+          <div class="filter-option" data-color="U">
+            <img src="Pictures/Blue.png" alt="Blue" loading="lazy" />
+          </div>
+          <div class="filter-option" data-color="B">
+            <img src="Pictures/Black.png" alt="Black" loading="lazy" />
+          </div>
+          <div class="filter-option" data-color="R">
+            <img src="Pictures/Red.png" alt="Red" loading="lazy" />
+          </div>
+          <div class="filter-option" data-color="G">
+            <img src="Pictures/Green.png" alt="Green" loading="lazy" />
+          </div>
+        </aside>
+
+        <!-- Main Content (Right Column): Card Grid -->
+        <div class="main-content">
+          <div class="card-grid" id="cardGrid">
+            <!-- Card items will be dynamically added here -->
+          </div>
+        </div>
+      </div>
+    </div>
+
+    <!-- Detail View for a Single Card (Initially Hidden) -->
+    <div id="detailView" style="display: none;">
+      <button id="backButton">← Back to Cards</button>
+      <h1 id="detailTitle">Card Detail</h1>
+      <img id="detailImage" src="" alt="Card Image" />
+      <p id="detailInfo"></p>
     </div>
   </div>
 
   <script>
-    // This function parses the clean URL.
-    // Example URL: /mtg-reviews/Bloomburrow/46/dire-downdraft
-    function parseCleanURL() {
-      // window.location.pathname returns "/mtg-reviews/Bloomburrow/46/dire-downdraft"
-      const parts = window.location.pathname.split('/').filter(Boolean);
-      // Remove the "mtg-reviews" part (since our base is /mtg-reviews/)
-      if (parts[0] === "mtg-reviews") {
-        parts.shift();
+    // --- Utility Functions ---
+    function getRouteSegments() {
+      var path = window.location.pathname;
+      // Remove the base "/mtg-reviews/" if present.
+      if (path.startsWith("/mtg-reviews/")) {
+        path = path.substring("/mtg-reviews/".length);
       }
-      // Now we expect parts[0] to be "Bloomburrow", parts[1] to be card number, parts[2] to be card slug.
-      if(parts.length >= 3 && parts[0].toLowerCase() === "bloomburrow") {
-        return {
-          cardNumber: parts[1],
-          cardSlug: parts[2]
-        };
-      }
-      return null;
+      return path.split("/").filter(Boolean);
     }
-
-    // Convert URL slug (e.g. "dire-downdraft") into a proper card name ("Dire Downdraft")
-    function slugToCardName(slug) {
-      return slug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
-    }
-
-    // Main function to load the dynamic card review
-    function loadCardDetail() {
-      const params = parseCleanURL();
-      const cardDetailContainer = document.getElementById('cardDetail');
-
-      if (!params) {
-        cardDetailContainer.innerHTML = "<h1>No card specified.</h1>";
-        return;
-      }
-
-      const cardNumber = params.cardNumber;
-      const cardSlug = params.cardSlug;
-      const cardName = slugToCardName(cardSlug);
-
-      // Fetch card data from Bloomburrow/blb.json (relative to the base href)
-      fetch("Bloomburrow/blb.json")
+    
+    // --- Index (Listing) Functions ---
+    function loadIndex() {
+      const cardGrid = document.getElementById('cardGrid');
+      cardGrid.innerHTML = "";
+      
+      fetch('Bloomburrow/blb.json')
         .then(response => response.json())
         .then(data => {
-          let cards;
-          if(data.data && Array.isArray(data.data.cards)) {
-            cards = data.data.cards;
-          } else if(Array.isArray(data)) {
-            cards = data;
-          } else {
-            cards = [data];
+          if (data.data && Array.isArray(data.data.cards)) {
+            data = data.data.cards;
+          } else if (!Array.isArray(data)) {
+            data = [data];
           }
-          // Find the card matching the given name (case-insensitive) and card number.
-          const card = cards.find(c => c.name.toLowerCase() === cardName.toLowerCase() && c.number === cardNumber);
+          
+          // Group cards by name.
+          const groups = {};
+          data.forEach(card => {
+            if (!groups[card.name]) groups[card.name] = [];
+            groups[card.name].push(card);
+          });
+          
+          Object.keys(groups).forEach(cardName => {
+            const versions = groups[cardName];
+            const defaultVersion = versions[0];
+            const cardItem = document.createElement('div');
+            cardItem.className = 'card-item';
+            cardItem.setAttribute('data-name', cardName.toLowerCase());
+            cardItem.setAttribute('data-cost', defaultVersion.manaCost || "");
+            
+            // Build a clean URL for card detail.
+            const cardNumber = defaultVersion.number || "";
+            const slug = cardName.toLowerCase().replace(/\s+/g, '-');
+            const defaultLink = "Bloomburrow/" + cardNumber + "/" + slug;
+            
+            // Helper for image source.
+            function getImageSrc(card) {
+              return "Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
+                     (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
+            }
+            const defaultImageSrc = getImageSrc(defaultVersion);
+            
+            cardItem.innerHTML = `
+              <a class="main-link" href="${defaultLink}">
+                <img class="main-image" loading="lazy" src="${defaultImageSrc}" alt="${defaultVersion.name}" />
+              </a>
+              <h3>${cardName}</h3>
+              <div class="thumbnails"></div>
+            `;
+            
+            // Clicking the card navigates to the detail view.
+            cardItem.querySelector('.main-link').addEventListener('click', function(e) {
+              e.preventDefault();
+              navigateToCard(cardNumber, cardName);
+            });
+            
+            cardGrid.appendChild(cardItem);
+          });
+        })
+        .catch(error => console.error("Error loading card data:", error));
+    }
+    
+    // --- Detail View Functions ---
+    function loadCardDetail(cardNumber, cardSlug) {
+      // Convert the slug (e.g., "dire-downdraft") into a proper card name.
+      const cardName = cardSlug.split('-').map(word => word.charAt(0).toUpperCase() + word.slice(1)).join(' ');
+      
+      fetch('Bloomburrow/blb.json')
+        .then(response => response.json())
+        .then(data => {
+          if (data.data && Array.isArray(data.data.cards)) {
+            data = data.data.cards;
+          } else if (!Array.isArray(data)) {
+            data = [data];
+          }
+          
+          // Find the card by name (case-insensitive) and number.
+          let card = data.find(c => c.name.toLowerCase() === cardName.toLowerCase() && c.number === cardNumber);
           if (!card) {
-            cardDetailContainer.innerHTML = "<h1>Card not found.</h1>";
+            document.getElementById("detailTitle").textContent = "Card not found";
             return;
           }
-
-          // Build the image URL.
-          // Images are assumed to be in the root folder "Pictures 2" under /mtg-reviews/
-          let imageUrl = "Pictures 2/" + card.name.replace(/[^\w]/g, '_');
-          if(card.number && card.artist) {
-            imageUrl += "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') + ".png";
-          } else {
-            imageUrl += ".png";
-          }
-
-          // Construct the HTML for the card detail view.
-          const html = `
-            <h1>${card.name} Card Review</h1>
-            <img src="${imageUrl}" alt="${card.name}" class="card-image" onerror="this.onerror=null;this.src='Pictures/placeholder.png';" />
-            <p><strong>Type:</strong> ${card.type || "N/A"}</p>
-            <p><strong>Oracle Text:</strong> ${card.text || "N/A"}</p>
-            <p><strong>Flavor Text:</strong> ${card.flavorText || "N/A"}</p>
-            <p><strong>Artist:</strong> ${card.artist || "N/A"}</p>
-            <a href="Bloomburrow/" class="back-link">← Back to Bloomburrow</a>
-          `;
-          cardDetailContainer.innerHTML = html;
-          // Optionally update the document title and meta description.
-          document.title = card.name + " Card Review";
-          let metaDesc = document.querySelector('meta[name="description"]');
-          if(metaDesc) {
-            metaDesc.setAttribute("content", "In-depth review of " + card.name + ". " + (card.text || ""));
-          }
+          
+          // Populate the detail view.
+          document.getElementById("detailTitle").textContent = card.name + " Card Review";
+          const imgSrc = "Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
+                         (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
+          const detailImage = document.getElementById("detailImage");
+          detailImage.src = imgSrc;
+          detailImage.alt = card.name;
+          
+          let info = "";
+          info += card.type ? "Type: " + card.type + "\n" : "";
+          info += card.text ? "Text: " + card.text + "\n" : "";
+          info += card.flavorText ? "Flavor: " + card.flavorText + "\n" : "";
+          info += card.artist ? "Artist: " + card.artist : "";
+          document.getElementById("detailInfo").textContent = info;
         })
         .catch(error => {
-          console.error("Error loading card data:", error);
-          cardDetailContainer.innerHTML = "<h1>Error loading card details.</h1>";
+          console.error("Error loading card detail:", error);
+          document.getElementById("detailTitle").textContent = "Error loading card";
         });
     }
-
-    document.addEventListener("DOMContentLoaded", loadCardDetail);
+    
+    // --- Navigation / Routing ---
+    function navigateToCard(cardNumber, cardName) {
+      const slug = cardName.toLowerCase().replace(/\s+/g, '-');
+      const newURL = "Bloomburrow/" + cardNumber + "/" + slug;
+      history.pushState({cardNumber, cardName}, '', newURL);
+      // Switch to detail view.
+      document.getElementById("indexView").style.display = "none";
+      document.getElementById("detailView").style.display = "block";
+      loadCardDetail(cardNumber, slug);
+    }
+    
+    function loadApp() {
+      const segments = getRouteSegments();
+      // If the URL has exactly three segments and the first is "Bloomburrow", assume detail view.
+      if (segments.length === 3 && segments[0] === "Bloomburrow") {
+        document.getElementById("indexView").style.display = "none";
+        document.getElementById("detailView").style.display = "block";
+        loadCardDetail(segments[1], segments[2]);
+      } else {
+        // Otherwise, show the index (card listing) view.
+        document.getElementById("indexView").style.display = "block";
+        document.getElementById("detailView").style.display = "none";
+        loadIndex();
+      }
+    }
+    
+    // Handle browser back/forward buttons.
+    window.addEventListener('popstate', loadApp);
+    
+    // Back button in the detail view.
+    document.getElementById("backButton").addEventListener('click', function() {
+      history.pushState({}, '', "Bloomburrow/");
+      loadApp();
+    });
+    
+    // On initial load, run the app.
+    document.addEventListener("DOMContentLoaded", loadApp);
   </script>
 </body>
 </html>
