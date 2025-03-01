@@ -1888,50 +1888,50 @@
   </div>
 
   <!-- JavaScript to generate thumbnails from JSON -->
-  <script>
-    // Debounce helper function.
-    function debounce(func, delay) {
-      let timeoutId;
-      return function(...args) {
-        clearTimeout(timeoutId);
-        timeoutId = setTimeout(() => func.apply(this, args), delay);
-      };
-    }
+<script>
+  // Debounce helper function.
+  function debounce(func, delay) {
+    let timeoutId;
+    return function(...args) {
+      clearTimeout(timeoutId);
+      timeoutId = setTimeout(() => func.apply(this, args), delay);
+    };
+  }
 
-    // Helper functions to generate image source and card link.
-    function getImageSrc(card) {
-      // Replace any non-word character with underscore.
-      return "../Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
-             (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
-    }
-    function getCardLink(card) {
-      return "/mtg-reviews/aetherdrift/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
-             (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
-             (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
-    }
+  // Helper function to generate an image source from card data.
+  function getImageSrc(card) {
+    // Replace any non-word character with underscore.
+    return "../Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
+           (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
+  }
 
-    // Fetch JSON and generate thumbnails for the static card.
-    fetch('DFT.json')
-      .then(response => response.json())
-      .then(data => {
-        // Normalize the JSON structure.
-        let cards;
-        if (data.data && Array.isArray(data.data.cards)) {
-          cards = data.data.cards;
-        } else if (Array.isArray(data)) {
-          cards = data;
-        } else {
-          cards = [data];
-        }
-        
-        // Get the card name from the static card's data attribute.
-        const cardItem = document.querySelector('.card-item');
+  // Helper function to generate the card link URL.
+  function getCardLink(card) {
+    return "/mtg-reviews/aetherdrift/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
+           (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
+           (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
+  }
+
+  // Fetch JSON and generate thumbnails for every card-item.
+  fetch('DFT.json')
+    .then(response => response.json())
+    .then(data => {
+      // Normalize the JSON structure.
+      let cards;
+      if (data.data && Array.isArray(data.data.cards)) {
+        cards = data.data.cards;
+      } else if (Array.isArray(data)) {
+        cards = data;
+      } else {
+        cards = [data];
+      }
+
+      // Loop over each card-item in the document.
+      document.querySelectorAll('.card-item').forEach(cardItem => {
         const cardName = cardItem.getAttribute('data-card').toLowerCase();
-        
-        // Filter out all versions for this card.
+        // Filter the JSON entries to find all versions for this card.
         const versions = cards.filter(card => card.name.toLowerCase() === cardName);
-        
-        // If there are multiple versions, generate thumbnails.
+
         if (versions.length > 1) {
           const thumbnailsContainer = cardItem.querySelector('.thumbnails');
           versions.forEach(version => {
@@ -1945,13 +1945,13 @@
             // Store data for event handlers.
             thumb.setAttribute('data-image-src', versionImageSrc);
             thumb.setAttribute('data-link', versionLink);
-            
+
             // Remove thumbnail if it fails to load.
             thumb.addEventListener('error', function() {
               thumb.remove();
             });
-            
-            // On hover, update the main image and link.
+
+            // On hover, update the main image and link with error checking.
             thumb.addEventListener('mouseover', debounce(function() {
               if (!thumb.complete || thumb.naturalWidth === 0) return;
               const mainLink = cardItem.querySelector('.main-link');
@@ -1976,52 +1976,54 @@
                 }
               };
             }, 200));
-            
+
             // On click, navigate to the version's page.
             thumb.addEventListener('click', function(e) {
               window.location.href = thumb.getAttribute('data-link');
               e.stopPropagation();
             });
-            
+
             thumbnailsContainer.appendChild(thumb);
           });
         } else {
-          // Hide thumbnails container if only one version exists.
+          // If only one version exists, hide the thumbnails container.
           cardItem.querySelector('.thumbnails').style.display = 'none';
         }
-      })
-      .catch(error => console.error("Error loading card data:", error));
+      });
+    })
+    .catch(error => console.error("Error loading card data:", error));
 
-    // (Optional) Filter functionality.
-    const filterInput = document.getElementById('filterInput');
-    filterInput.addEventListener('input', function() {
-      const textQuery = filterInput.value.toLowerCase().trim();
+  // (Optional) Filter functionality.
+  const filterInput = document.getElementById('filterInput');
+  filterInput.addEventListener('input', function() {
+    const textQuery = filterInput.value.toLowerCase().trim();
+    document.querySelectorAll('.card-item').forEach(card => {
+      const cardName = card.getAttribute('data-card').toLowerCase();
+      card.style.display = cardName.includes(textQuery) ? '' : 'none';
+    });
+  });
+
+  // (Optional) Color filter sidebar functionality.
+  let activeFilters = [];
+  document.querySelectorAll('.filter-option').forEach(option => {
+    option.addEventListener('click', function() {
+      const color = option.getAttribute('data-color');
+      if (activeFilters.includes(color)) {
+        activeFilters = activeFilters.filter(c => c !== color);
+        option.classList.remove('active');
+      } else {
+        activeFilters.push(color);
+        option.classList.add('active');
+      }
       document.querySelectorAll('.card-item').forEach(card => {
-        const cardName = card.getAttribute('data-card').toLowerCase();
-        card.style.display = cardName.includes(textQuery) ? '' : 'none';
+        const cardCost = card.getAttribute('data-cost') || "";
+        // Check if cardCost includes each active color.
+        const matchesColors = activeFilters.every(color => cardCost.includes(`{${color}}`));
+        card.style.display = matchesColors ? '' : 'none';
       });
     });
+  });
+</script>
 
-    // (Optional) Color filter sidebar functionality.
-    let activeFilters = [];
-    document.querySelectorAll('.filter-option').forEach(option => {
-      option.addEventListener('click', function() {
-        const color = option.getAttribute('data-color');
-        if (activeFilters.includes(color)) {
-          activeFilters = activeFilters.filter(c => c !== color);
-          option.classList.remove('active');
-        } else {
-          activeFilters.push(color);
-          option.classList.add('active');
-        }
-        document.querySelectorAll('.card-item').forEach(card => {
-          const cardCost = card.getAttribute('data-cost') || "";
-          // Check if cardCost includes each active color.
-          const matchesColors = activeFilters.every(color => cardCost.includes(`{${color}}`));
-          card.style.display = matchesColors ? '' : 'none';
-        });
-      });
-    });
-  </script>
 </body>
 </html>
