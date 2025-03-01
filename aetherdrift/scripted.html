@@ -1,0 +1,470 @@
+<!DOCTYPE html>
+<html lang="nl">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>All Aetherdrift cards - review MTG cards</title>
+  <meta name="description" content="Review Aetherdrift MTG cards, find reviews from others and learn about art, mechanics and our favorite game">
+  <!-- Modern Google Font -->
+  <link href="https://fonts.googleapis.com/css2?family=Roboto:wght@400;500;700&display=swap" rel="stylesheet">
+ 
+  <style>
+	/* ---------- Global Styles ---------- */
+	body {
+  	font-family: 'Roboto', sans-serif;
+  	background: linear-gradient(135deg, #1e1e1e, #121212);
+  	color: #e0e0e0;
+  	margin: 0;
+  	padding: 20px;
+	}
+    
+	.container {
+  	max-width: 1200px;
+  	margin: 0 auto;
+	}
+
+	/* ---------- Navigation ---------- */
+	nav {
+  	display: flex;
+  	align-items: center;
+  	justify-content: space-between;
+  	background: linear-gradient(90deg, #1e1e1e, #292929);
+  	padding: 15px 20px;
+  	box-shadow: 0px 4px 10px rgba(0, 0, 0, 0.2);
+  	margin-bottom: 20px;
+	}
+    
+	nav a {
+  	color: #ffffff;
+  	text-decoration: none;
+  	font-size: 18px;
+  	font-weight: bold;
+  	padding: 10px 20px;
+  	border-radius: 5px;
+  	transition: all 0.3s ease-in-out;
+	}
+    
+	nav a:hover {
+  	background: #ff6600;
+  	color: #fff;
+  	box-shadow: 0px 0px 10px rgba(255, 102, 0, 0.6);
+	}
+    
+	.home-link {
+  	margin-right: auto;
+	}
+    
+	.nav-center {
+  	flex-grow: 1;
+  	text-align: center;
+	}
+
+	/* ---------- Page Title ---------- */
+	h1 {
+  	text-align: center;
+  	margin-bottom: 20px;
+  	margin-top: 0;
+	}
+
+	/* ---------- Filter Input ---------- */
+	#filterInput {
+  	width: 100%;
+  	max-width: 400px;
+  	padding: 10px;
+  	margin: 0 auto 30px auto;
+  	display: block;
+  	border: none;
+  	border-radius: 8px;
+  	font-size: 16px;
+	}
+
+	/* ---------- Content Wrapper ---------- */
+	.content-wrapper {
+  	display: flex;
+  	gap: 20px;
+  	min-height: 60vh;
+	}
+    
+	/* ---- Filter Sidebar (Left Column) ---- */
+	.filter-sidebar {
+  	width: 80px;
+  	padding: 20px;
+  	display: flex;
+  	flex-direction: column;
+  	align-items: center;
+  	background: #2b2b2b;
+  	border-right: 2px solid #444;
+	}
+    
+	.filter-option {
+  	width: 50px;
+  	height: 50px;
+  	margin-bottom: 15px;
+  	border: 2px solid transparent;
+  	border-radius: 50%;
+  	overflow: hidden;
+  	cursor: pointer;
+  	transition: transform 0.3s, border 0.3s;
+	}
+    
+	.filter-option:hover {
+  	transform: scale(1.1);
+	}
+    
+	.filter-option.active {
+  	border-color: #ff6600;
+	}
+    
+	.filter-option img {
+  	width: 100%;
+  	height: 100%;
+  	object-fit: cover;
+	}
+
+	/* ---------- Main Content (Right Column) ---------- */
+	.main-content {
+  	flex: 1;
+	}
+
+	/* ---------- Card Grid ---------- */
+	.card-grid {
+  	display: grid;
+  	grid-template-columns: repeat(auto-fill, minmax(200px, 1fr));
+  	gap: 20px;
+	}
+    
+	.card-item {
+  	background: #2b2b2b;
+  	padding: 10px;
+  	border-radius: 10px;
+  	box-shadow: 0 2px 8px rgba(0, 0, 0, 0.3);
+  	text-align: center;
+  	transition: transform 0.3s;
+	}
+    
+	.card-item:hover {
+  	transform: translateY(-5px);
+	}
+    
+	.card-item h3 {
+  	margin: 10px 0 0;
+	}
+    
+	/* ---------- Main Image and Thumbnails ---------- */
+	.main-link,
+	.main-link:visited {
+  	text-decoration: none;
+  	color: inherit;
+	}
+    
+	.main-image {
+  	width: 100%;
+  	height: auto;
+  	border-radius: 8px;
+  	cursor: pointer;
+	}
+    
+	.thumbnails {
+  	display: flex;
+  	flex-wrap: wrap;
+  	margin-top: 5px;
+  	justify-content: center;
+	}
+    
+	.thumb-image {
+  	width: 40px;
+  	height: auto;
+  	border-radius: 4px;
+  	margin: 2px;
+  	cursor: pointer;
+	}
+    
+	.thumb-image:hover {
+  	/* Optional: add a hover style */
+	}
+
+	/* ---------- Responsive Adjustments ---------- */
+	@media (max-width: 600px) {
+  	.content-wrapper {
+    	flex-direction: column;
+  	}
+ 	 
+  	.filter-sidebar {
+    	width: 100%;
+    	border-right: none;
+    	border-bottom: 2px solid #444;
+    	flex-direction: row;
+    	justify-content: center;
+    	gap: 10px;
+    	padding: 10px;
+  	}
+ 	 
+  	.filter-option {
+    	width: 40px;
+    	height: 40px;
+    	margin-bottom: 0;
+  	}
+ 	 
+  	.home-link {
+    	margin: 0 0 10px 0;
+  	}
+	}
+  </style>
+</head>
+<body>
+  <div class="container">
+	<!-- Navigation Bar -->
+	<nav>
+  	<a href="https://dnlvdv.github.io/mtg-reviews/" class="home-link">Home</a>
+  	<div class="nav-center">
+    	<a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
+    	<a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>   	 
+  	</div>
+	</nav>
+
+	<!-- Page Title -->
+	<h1>MTG Cards</h1>
+
+	<!-- Filter Input -->
+	<input type="text" id="filterInput" placeholder="Filter cards..." />
+
+	<!-- Main Two-Column Layout -->
+	<div class="content-wrapper">
+  	<!-- FILTER SIDEBAR (Left Column) -->
+  	<aside class="filter-sidebar">
+    	<div class="filter-option" data-color="W">
+      	<img src="../Pictures/White.png" alt="White" loading="lazy" />
+    	</div>
+    	<div class="filter-option" data-color="U">
+      	<img src="../Pictures/Blue.png" alt="Blue" loading="lazy" />
+    	</div>
+    	<div class="filter-option" data-color="B">
+      	<img src="../Pictures/Black.png" alt="Black" loading="lazy" />
+    	</div>
+    	<div class="filter-option" data-color="R">
+      	<img src="../Pictures/Red.png" alt="Red" loading="lazy" />
+    	</div>
+    	<div class="filter-option" data-color="G">
+      	<img src="../Pictures/Green.png" alt="Green" loading="lazy" />
+    	</div>
+  	</aside>
+
+  	<!-- MAIN CONTENT (Right Column) -->
+  	<div class="main-content">
+    	<div class="card-grid" id="cardGrid">
+      	<!-- Card items will be dynamically added here -->
+    	</div>
+  	</div>
+	</div>
+  </div>
+
+  <script>
+	// Debounce helper function.
+	function debounce(func, delay) {
+  	let timeoutId;
+  	return function(...args) {
+    	clearTimeout(timeoutId);
+    	timeoutId = setTimeout(() => func.apply(this, args), delay);
+  	};
+	}
+
+	// Helper functions to generate image source and link URL for a card version.
+	function getImageSrc(card) {
+  	// Replace any non-word character with underscore.
+  	return "../Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
+         	(card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
+	}
+	function getCardLink(card) {
+  	return "/mtg-reviews/aetherdrift/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
+         	(card.number ? "&number=" + encodeURIComponent(card.number) : "") +
+         	(card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
+	}
+
+	// Function that returns a Promise that resolves with the first working version in an array.
+	function findFirstWorkingImage(versions) {
+  	return new Promise((resolve, reject) => {
+    	let index = 0;
+    	function testNext() {
+      	if (index >= versions.length) {
+        	reject("No working image found");
+        	return;
+      	}
+      	const version = versions[index];
+      	const src = getImageSrc(version);
+      	const img = new Image();
+      	img.onload = function() {
+        	resolve({ version: version, src: src });
+      	};
+      	img.onerror = function() {
+        	index++;
+        	testNext();
+      	};
+      	img.src = src;
+    	}
+    	testNext();
+  	});
+	}
+
+	// Array to hold active color filters (e.g. ["W", "B"])
+	let activeFilters = [];
+	const filterInput = document.getElementById('filterInput');
+	const cardGrid = document.getElementById('cardGrid');
+
+	// Group cards by name (each group will contain all versions)
+	function groupCards(cards) {
+  	const groups = {};
+  	cards.forEach(card => {
+    	if (!groups[card.name]) {
+      	groups[card.name] = [];
+    	}
+    	groups[card.name].push(card);
+  	});
+  	return groups;
+	}
+
+	// Fetch card data from your JSON file (DFT.json)
+	fetch('DFT.json')
+  	.then(response => response.json())
+  	.then(data => {
+    	if (data.data && Array.isArray(data.data.cards)) {
+      	data = data.data.cards;
+    	} else if (!Array.isArray(data)) {
+      	data = [data];
+    	}
+   	 
+    	const groupedCards = groupCards(data);
+    	const groupKeys = Object.keys(groupedCards);
+    	// Process each card group asynchronously.
+    	const promises = groupKeys.map(cardName => {
+      	const versions = groupedCards[cardName];
+      	return findFirstWorkingImage(versions)
+        	.then(result => {
+          	const defaultVersion = result.version;
+          	const defaultImageSrc = result.src;
+          	const defaultLink = getCardLink(defaultVersion);
+          	// Create the card item block.
+          	const cardItem = document.createElement('div');
+          	cardItem.className = 'card-item';
+          	cardItem.setAttribute('data-name', cardName.toLowerCase());
+          	cardItem.setAttribute('data-cost', defaultVersion.manaCost || "");
+          	cardItem.innerHTML = `
+            	<a class="main-link" href="${defaultLink}">
+              	<img class="main-image" loading="lazy" src="${defaultImageSrc}" alt="${defaultVersion.name}" />
+            	</a>
+            	<h3>${cardName}</h3>
+            	<div class="thumbnails"></div>
+          	`;
+          	const mainImg = cardItem.querySelector('.main-image');
+          	mainImg.dataset.defaultSrc = defaultImageSrc;
+          	mainImg.onerror = function() {
+            	if (mainImg.src !== mainImg.dataset.defaultSrc) {
+              	mainImg.src = mainImg.dataset.defaultSrc;
+              	cardItem.querySelector('.main-link').href = defaultLink;
+            	} else {
+              	mainImg.src = '../Pictures/placeholder.png';
+            	}
+          	};
+
+          	const thumbnailsContainer = cardItem.querySelector('.thumbnails');
+          	if (versions.length > 1) {
+            	// Loop through each version to create a thumbnail.
+            	versions.forEach(version => {
+              	const versionImageSrc = getImageSrc(version);
+              	const versionLink = getCardLink(version);
+              	const thumb = document.createElement('img');
+              	thumb.className = 'thumb-image';
+              	thumb.loading = "lazy";
+              	thumb.src = versionImageSrc;
+              	thumb.alt = version.name;
+             	 
+              	// Remove the thumbnail if it fails to load.
+              	thumb.addEventListener('error', function() {
+                	thumb.remove();
+              	});
+             	 
+              	// On hover, update the main image and link with error checking.
+              	thumb.addEventListener('mouseover', debounce(function() {
+                	if (!thumb.complete || thumb.naturalWidth === 0) return;
+                	const mainLink = cardItem.querySelector('.main-link');
+                	const currentSrc = mainImg.src;
+                	const currentLink = mainLink.href;
+                	mainImg.retryDone = false;
+                	mainImg.src = versionImageSrc;
+                	mainLink.href = versionLink;
+                	mainImg.onerror = function() {
+                  	if (!mainImg.retryDone) {
+                    	mainImg.retryDone = true;
+                    	mainImg.src = currentSrc;
+                    	mainLink.href = currentLink;
+                  	}
+                  	mainImg.onerror = function() {
+                    	if (mainImg.src !== mainImg.dataset.defaultSrc) {
+                      	mainImg.src = mainImg.dataset.defaultSrc;
+                      	mainLink.href = defaultLink;
+                    	} else {
+                      	mainImg.src = '../Pictures/placeholder.png';
+                    	}
+                  	};
+                	};
+              	}, 200));
+             	 
+              	// On click, navigate to that version's page.
+              	thumb.addEventListener('click', function(e) {
+                	window.location.href = versionLink;
+                	e.stopPropagation();
+              	});
+              	thumbnailsContainer.appendChild(thumb);
+            	});
+          	} else {
+            	thumbnailsContainer.style.display = 'none';
+          	}
+          	cardGrid.appendChild(cardItem);
+          	return true;
+        	})
+        	.catch(err => {
+          	// Skip this card group if no working image is found.
+          	return false;
+        	});
+    	});
+    	Promise.all(promises).then(() => {
+      	updateCardVisibility();
+    	});
+  	})
+  	.catch(error => console.error("Error loading card data:", error));
+
+	// Function to update card visibility based on text and color filters.
+	function updateCardVisibility() {
+  	const textQuery = filterInput.value.toLowerCase().trim();
+  	const cards = document.querySelectorAll('.card-item');
+  	cards.forEach(card => {
+    	const cardName = card.getAttribute('data-name');
+    	const cardCost = card.getAttribute('data-cost') || "";
+    	const matchesName = cardName.includes(textQuery);
+    	const matchesColors = activeFilters.every(color => cardCost.includes(`{${color}}`));
+    	const finalMatchesColors = activeFilters.length > 0 ? matchesColors : true;
+    	card.style.display = (matchesName && finalMatchesColors) ? '' : 'none';
+  	});
+	}
+    
+	filterInput.addEventListener('input', updateCardVisibility);
+    
+	// Color filter sidebar functionality.
+	const filterOptions = document.querySelectorAll('.filter-option');
+	filterOptions.forEach(option => {
+  	option.addEventListener('click', () => {
+    	const color = option.getAttribute('data-color');
+    	if (activeFilters.includes(color)) {
+      	activeFilters = activeFilters.filter(c => c !== color);
+      	option.classList.remove('active');
+    	} else {
+      	activeFilters.push(color);
+      	option.classList.add('active');
+    	}
+    	updateCardVisibility();
+  	});
+	});
+  </script>
+</body>
+</html>
+
+
