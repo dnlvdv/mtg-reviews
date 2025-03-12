@@ -504,7 +504,8 @@
               altContainer.appendChild(altImg);
             });
           } else {
-              document.querySelector('.alternate-art').style.display = 'none';
+              const altSection = document.querySelector('.alternate-art');
+              altSection.style.display = 'none';
           }
           
           // Load existing reviews.
