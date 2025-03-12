@@ -503,10 +503,15 @@
               });
               altContainer.appendChild(altImg);
             });
-          } else {
-              const altSection = document.querySelector('.alternate-art');
-              altSection.style.display = 'none';
-          }
+} else {
+    // Hide the alternate art section entirely
+    const altSection = document.querySelector('.alternate-art');
+    altSection.style.display = 'none';
+    // Make the main card section take full width
+    const mainCard = document.querySelector('.main-card');
+    mainCard.style.flex = '1 0 100%';
+}
+
           
           // Load existing reviews.
           loadReviews();
