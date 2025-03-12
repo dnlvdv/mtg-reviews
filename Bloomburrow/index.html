@@ -275,7 +275,7 @@
              (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
     }
     function getCardLink(card) {
-      return "/mtg-reviews/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
+      return "/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
              (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
              (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
     }
