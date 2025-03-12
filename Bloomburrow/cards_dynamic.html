@@ -393,7 +393,7 @@
           (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
       }
       function getCardLink(card) {
-        return "/mtg-reviews/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
+        return "/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
           (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
           (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
       }
@@ -460,7 +460,7 @@
           const nextLink = document.getElementById("nextCardLink");
           if (currentIndex !== -1 && currentIndex < allCards.length - 1) {
             const nextCard = allCards[currentIndex + 1];
-            const nextCardUrl = "http://www.mtg-card-reviews.com/mtg-reviews/Bloomburrow/cards_dynamic.html" +
+            const nextCardUrl = "http://www.mtg-card-reviews.com/Bloomburrow/cards_dynamic.html" +
               "?card=" + encodeURIComponent(nextCard.name) +
               "&number=" + encodeURIComponent(nextCard.number) +
               "&artist=" + encodeURIComponent(nextCard.artist);
@@ -495,7 +495,7 @@
               // On click, navigate to that alternate version’s page so that
               // the main page reloads with the new version’s data.
               altImg.addEventListener("click", function() {
-                const newURL = "http://www.mtg-card-reviews.com/mtg-reviews/Bloomburrow/cards_dynamic.html" +
+                const newURL = "http://www.mtg-card-reviews.com/Bloomburrow/cards_dynamic.html" +
                   "?card=" + encodeURIComponent(version.name) +
                   "&number=" + encodeURIComponent(version.number) +
                   "&artist=" + encodeURIComponent(version.artist);
