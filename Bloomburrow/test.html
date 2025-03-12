@@ -67,11 +67,15 @@
       padding: 20px;
       border-radius: 10px;
       box-shadow: 0 2px 6px rgba(0,0,0,0.3);
+      display: flex;
+      gap: 20px;
     }
-    /* Card display */
+    /* Left section: Main card display */
+    .main-card {
+      flex: 2;
+    }
     .card-container {
       display: flex;
-      flex-wrap: wrap;
       gap: 16px;
       margin-bottom: 20px;
     }
@@ -79,7 +83,7 @@
       flex: 1;
       max-width: 280px;
     }
-    /* Removed inline onerror attribute from the below img */
+    /* Main card image */
     #cardImage {
       width: 100%;
       border-radius: 6px;
@@ -98,9 +102,8 @@
     .card-title {
       font-size: 1.5rem;
       font-weight: 700;
-      color: #ff9900; /* accent color for the card title */
+      color: #ff9900;
     }
-    /* Card sections */
     .card-section {
       background: #2a2a2a;
       border: 1px solid #333;
@@ -113,14 +116,12 @@
       color: #ff9900;
       font-weight: 700;
     }
-    /* Mana symbols */
     .mana-symbol {
       width: 20px;
       height: 20px;
       vertical-align: middle;
       margin: 0 2px;
     }
-    /* Buttons */
     .copy-btn {
       background: #ff9900;
       color: #121212;
@@ -149,7 +150,6 @@
     button.submit-review:hover {
       background: #ff7700;
     }
-    /* Review styling */
     label[for="rating"] {
       display: block;
       text-align: center;
@@ -203,6 +203,28 @@
       margin-bottom: 5px;
       color: #ff9900;
     }
+    /* Right section: Alternate art */
+    .alternate-art {
+      flex: 1;
+      display: flex;
+      flex-direction: column;
+      gap: 10px;
+      max-width: 250px;
+    }
+    .alternate-art h2 {
+      font-size: 1.3rem;
+      color: #ff9900;
+      margin-bottom: 8px;
+    }
+    .alt-art-thumb {
+      width: 100%;
+      border-radius: 6px;
+      cursor: pointer;
+      transition: transform 0.3s;
+    }
+    .alt-art-thumb:hover {
+      transform: scale(1.05);
+    }
     /* Modal & magnifier */
     .modal {
       display: none;
@@ -255,52 +277,59 @@
 <body>
 
   <nav>
-    <a href="https://dnlvdv.github.io/mtg-reviews/" class="home-link">Home</a>
+    <a href="http://www.mtg-card-reviews.com" class="home-link">Home</a>
     <div class="nav-center">
-      <a href="https://dnlvdv.github.io/mtg-reviews/aetherdrift/">Aether Drift</a>
-      <a href="https://dnlvdv.github.io/mtg-reviews/Bloomburrow/">Bloomburrow</a>
+      <a href="http://www.mtg-card-reviews.com/aetherdrift/">Aether Drift</a>
+      <a href="http://www.mtg-card-reviews.com/Bloomburrow/">Bloomburrow</a>
     </div>
   </nav>
 
   <div class="container">
-    <div class="card-container">
-      <div class="card-art">
-        <img id="cardImage" src="" alt="Card Art">
+    <!-- Left section: Main card display -->
+    <div class="main-card">
+      <div class="card-container">
+        <div class="card-art">
+          <img id="cardImage" src="" alt="Card Art" loading="lazy">
+        </div>
+        <div class="card-details">
+          <div class="card-title" id="cardTitle"></div>
+          <div class="card-section">
+            <h3>Card types</h3>
+            <p id="cardType"></p>
+          </div>
+          <div class="card-section">
+            <h3>Oracle text</h3>
+            <p id="cardText"></p>
+          </div>
+          <div class="card-section">
+            <h3>Flavor text</h3>
+            <p id="cardFlavor"></p>
+          </div>
+          <div class="card-section">
+            <h3>Artist</h3>
+            <p id="cardArtist"></p>
+          </div>
+          <button class="copy-btn" onclick="copyCardInfo()">Copy Card Info</button>
+        </div>
       </div>
-      <div class="card-details">
-        <div class="card-title" id="cardTitle"></div>
-        <div class="card-section">
-          <h3>Card types</h3>
-          <p id="cardType"></p>
-        </div>
-        <div class="card-section">
-          <h3>Oracle text</h3>
-          <p id="cardText"></p>
-        </div>
-        <div class="card-section">
-          <h3>Flavor text</h3>
-          <p id="cardFlavor"></p>
-        </div>
-        <div class="card-section">
-          <h3>Artist</h3>
-          <p id="cardArtist"></p>
-        </div>
-        <button class="copy-btn" onclick="copyCardInfo()">Copy Card Info</button>
+      <!-- Review Section -->
+      <label for="rating">Rate this card:</label>
+      <div class="rating" id="rating">
+        <span class="star" data-value="1">★</span>
+        <span class="star" data-value="2">★</span>
+        <span class="star" data-value="3">★</span>
+        <span class="star" data-value="4">★</span>
+        <span class="star" data-value="5">★</span>
       </div>
+      <textarea id="comment" placeholder="Leave your review here..."></textarea>
+      <button class="submit-review" onclick="submitReview()">Submit</button>
+      <div class="review-list" id="reviewList"></div>
     </div>
-
-    <!-- Review Section -->
-    <label for="rating">Rate this card:</label>
-    <div class="rating" id="rating">
-      <span class="star" data-value="1">★</span>
-      <span class="star" data-value="2">★</span>
-      <span class="star" data-value="3">★</span>
-      <span class="star" data-value="4">★</span>
-      <span class="star" data-value="5">★</span>
+    <!-- Right section: Alternate art -->
+    <div class="alternate-art">
+      <h2>Alternate Art</h2>
+      <div id="alternateArtContainer"></div>
     </div>
-    <textarea id="comment" placeholder="Leave your review here..."></textarea>
-    <button class="submit-review" onclick="submitReview()">Submit</button>
-    <div class="review-list" id="reviewList"></div>
   </div>
 
   <!-- Modal for full-screen zoom -->
@@ -315,7 +344,7 @@
   <script>
     document.addEventListener("DOMContentLoaded", function() {
       console.log("Script loaded!");
-      let cardInfo;
+      let cardInfo, allCards;
       
       // Helper to get query parameter
       function getQueryParameter(name) {
@@ -343,15 +372,59 @@
           .replace(/\{G\}/g, '<img src="../Pictures/Green.png" alt="Green" class="mana-symbol">');
       }
 
+      // Helper functions to generate image source and link URL for a card version.
+      function getImageSrc(card) {
+        return "../Pictures 2/" + card.name.replace(/[^\w]/g, '_') +
+          (card.number && card.artist ? "_" + card.number + "_" + card.artist.replace(/[^\w]/g, '_') : "") + ".png";
+      }
+      function getCardLink(card) {
+        return "/mtg-reviews/Bloomburrow/cards_dynamic.html?card=" + encodeURIComponent(card.name) +
+          (card.number ? "&number=" + encodeURIComponent(card.number) : "") +
+          (card.artist ? "&artist=" + encodeURIComponent(card.artist) : "");
+      }
+
+      // Function that returns a Promise that resolves with the first working version in an array.
+      function findFirstWorkingImage(versions) {
+        return new Promise((resolve, reject) => {
+          let index = 0;
+          function testNext() {
+            if (index >= versions.length) {
+              reject("No working image found");
+              return;
+            }
+            const version = versions[index];
+            const src = getImageSrc(version);
+            const img = new Image();
+            img.onload = function() {
+              resolve({ version: version, src: src });
+            };
+            img.onerror = function() {
+              index++;
+              testNext();
+            };
+            img.src = src;
+          }
+          testNext();
+        });
+      }
+
+      // Debounce helper function.
+      function debounce(func, delay) {
+        let timeoutId;
+        return function(...args) {
+          clearTimeout(timeoutId);
+          timeoutId = setTimeout(() => func.apply(this, args), delay);
+        };
+      }
+
       // Fetch card data from blb.json
       fetch('./blb.json')
         .then(response => response.json())
         .then(data => {
-          // Normalize data structure if needed.
           if (data.data && Array.isArray(data.data.cards)) {
-            data = data.data.cards;
+            allCards = data.data.cards;
           } else if (!Array.isArray(data)) {
-            data = [data];
+            allCards = [data];
           }
           
           const cardNameParam = getQueryParameter("card");
@@ -359,18 +432,17 @@
           const artistParam = getQueryParameter("artist"); 
           console.log("card:", cardNameParam, "number:", numberParam, "artist:", artistParam);
           
-          // Find the current card index using name, number, and artist.
-          let currentIndex = data.findIndex(card =>
+          // Find the current card from allCards.
+          let currentIndex = allCards.findIndex(card =>
             card.name === cardNameParam &&
             card.number === numberParam &&
             card.artist === artistParam
           );
           if (currentIndex === -1) {
-            // Fallback: try to find by card name only.
-            currentIndex = data.findIndex(card => card.name === cardNameParam);
+            currentIndex = allCards.findIndex(card => card.name === cardNameParam);
             if (currentIndex === -1) currentIndex = 0;
           }
-          cardInfo = data[currentIndex];
+          cardInfo = allCards[currentIndex];
 
           // Update the document title and meta description.
           document.title = cardInfo.name + " Card Review";
@@ -382,7 +454,7 @@
           }
           metaDesc.setAttribute("content", "In-depth review of " + cardInfo.name + ". Explore its strengths, weaknesses, oracle text, flavor text, and more.");
 
-          // Construct the image path.
+          // Construct the image path for the main image.
           let cardPicture = "../Pictures 2/" + cardInfo.name.replace(/[^\w]/g, '_');
           if (numberParam && artistParam) {
             cardPicture += "_" + numberParam + "_" + artistParam.replace(/[^\w]/g, '_') + ".png";
@@ -395,29 +467,26 @@
           const cardImgElement = document.getElementById("cardImage");
           cardImgElement.src = cardPicture;
           cardImgElement.alt = cardInfo.name;
-          
-          // Fallback: If the new image fails to load, try the old image.
           cardImgElement.addEventListener('error', function() {
-              if (this.src.includes('Pictures%202') || this.src.includes('Pictures 2')) {
-                  let fallbackPicture = "../Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
-                  this.src = fallbackPicture;
-              } else {
-                  this.src = "../Pictures/placeholder.png";
-              }
+            if (this.src.includes('Pictures%202') || this.src.includes('Pictures 2')) {
+              let fallbackPicture = "../Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
+              this.src = fallbackPicture;
+            } else {
+              this.src = "../Pictures/placeholder.png";
+            }
           });
 
           // Insert card data into the DOM.
-          const titleEl = document.getElementById("cardTitle");
-          titleEl.innerHTML = cardInfo.name + " - " + parseManaCost(cardInfo.manaCost);
+          document.getElementById("cardTitle").innerHTML = cardInfo.name + " - " + parseManaCost(cardInfo.manaCost);
           document.getElementById("cardType").textContent = cardInfo.type || "";
           document.getElementById("cardText").textContent = cardInfo.text || "";
           document.getElementById("cardFlavor").textContent = cardInfo.flavorText || "";
           document.getElementById("cardArtist").textContent = "Artist: " + (cardInfo.artist || "");
 
           // Create a link to the next card if available.
-          if (currentIndex !== -1 && currentIndex < data.length - 1) {
-            const nextCard = data[currentIndex + 1];
-            const nextCardUrl = window.location.pathname +
+          if (currentIndex !== -1 && currentIndex < allCards.length - 1) {
+            const nextCard = allCards[currentIndex + 1];
+            const nextCardUrl = "http://www.mtg-card-reviews.com/mtg-reviews/Bloomburrow/cards_dynamic.html" +
               "?card=" + encodeURIComponent(nextCard.name) +
               "&number=" + encodeURIComponent(nextCard.number) +
               "&artist=" + encodeURIComponent(nextCard.artist);
@@ -429,6 +498,48 @@
             nextLink.style.fontSize = "1.1rem";
             nextLink.style.color = "#ff9900";
             document.querySelector(".container").appendChild(nextLink);
+          }
+          
+          // --- Alternate Art Section ---
+          // Find all alternate versions for this card (same name, excluding the one matching cardInfo's number/artist)
+          const altVersions = allCards.filter(card =>
+            card.name === cardInfo.name &&
+            !(card.number === cardInfo.number && card.artist === cardInfo.artist)
+          );
+          const altContainer = document.getElementById("alternateArtContainer");
+          if (altVersions.length > 0) {
+            altVersions.forEach(version => {
+              const altImgSrc = getImageSrc(version);
+              const altImg = document.createElement("img");
+              altImg.className = "alt-art-thumb";
+              altImg.loading = "lazy";
+              altImg.src = altImgSrc;
+              altImg.alt = version.name;
+              // On error, remove the thumbnail.
+              altImg.addEventListener("error", function() {
+                altImg.remove();
+              });
+              // On click, update the main image and URL.
+              altImg.addEventListener("click", function() {
+                // Update main image.
+                cardImgElement.src = altImgSrc;
+                cardImgElement.alt = version.name;
+                // Update the main link URL (if applicable).
+                // You may choose to update cardInfo or navigate to the alternate version's page.
+                // Here we update cardInfo and the next card link URL accordingly.
+                cardInfo.number = version.number;
+                cardInfo.artist = version.artist;
+                const newURL = "http://www.mtg-card-reviews.com/mtg-reviews/Bloomburrow/cards_dynamic.html" +
+                  "?card=" + encodeURIComponent(cardInfo.name) +
+                  "&number=" + encodeURIComponent(cardInfo.number) +
+                  "&artist=" + encodeURIComponent(cardInfo.artist);
+                window.history.replaceState({}, "", newURL);
+              });
+              altContainer.appendChild(altImg);
+            });
+          } else {
+            // If no alternate art exists, hide the alternate art section.
+            altContainer.innerHTML = "<p>No alternate art available.</p>";
           }
           
           // Load existing reviews.
