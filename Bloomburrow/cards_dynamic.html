@@ -255,10 +255,11 @@
 <body>
 
   <nav>
-    <a href="https://www.mtg-card-reviews.com" class="home-link">Home</a>
+    <!-- Updated nav links with proper forward slashes -->
+    <a href="http://www.mtg-card-reviews.com" class="home-link">Home</a>
     <div class="nav-center">
-      <a href="https://www.mtg-card-reviews.comaetherdrift/">Aether Drift</a>
-      <a href="https://www.mtg-card-reviews.comBloomburrow/">Bloomburrow</a>
+      <a href="http://www.mtg-card-reviews.com/aetherdrift/">Aether Drift</a>
+      <a href="http://www.mtg-card-reviews.com/Bloomburrow/">Bloomburrow</a>
     </div>
   </nav>
 
@@ -417,7 +418,8 @@
           // Create a link to the next card if available.
           if (currentIndex !== -1 && currentIndex < data.length - 1) {
             const nextCard = data[currentIndex + 1];
-            const nextCardUrl = window.location.pathname +
+            // Updated next card URL to be absolute and match the new domain and file structure.
+            const nextCardUrl = "http://www.mtg-card-reviews.com/mtg-reviews/Bloomburrow/cards_dynamic.html" +
               "?card=" + encodeURIComponent(nextCard.name) +
               "&number=" + encodeURIComponent(nextCard.number) +
               "&artist=" + encodeURIComponent(nextCard.artist);
