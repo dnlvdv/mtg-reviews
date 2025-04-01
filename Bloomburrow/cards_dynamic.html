@@ -371,20 +371,20 @@
       function parseManaCost(manaCost) {
         if (!manaCost) return '';
         return manaCost
-          .replace(/\{1\}/g, '<img src="../Pictures/1.png" alt="1" class="mana-symbol">')
-          .replace(/\{2\}/g, '<img src="../Pictures/2.png" alt="2" class="mana-symbol">')
-          .replace(/\{3\}/g, '<img src="../Pictures/3.png" alt="3" class="mana-symbol">')
-          .replace(/\{4\}/g, '<img src="../Pictures/4.png" alt="4" class="mana-symbol">')
-          .replace(/\{5\}/g, '<img src="../Pictures/5.png" alt="5" class="mana-symbol">')
-          .replace(/\{6\}/g, '<img src="../Pictures/6.png" alt="6" class="mana-symbol">')
-          .replace(/\{7\}/g, '<img src="../Pictures/7.png" alt="7" class="mana-symbol">')
-          .replace(/\{8\}/g, '<img src="../Pictures/8.png" alt="8" class="mana-symbol">')
-          .replace(/\{9\}/g, '<img src="../Pictures/9.png" alt="9" class="mana-symbol">')
-          .replace(/\{W\}/g, '<img src="../Pictures/White.png" alt="White" class="mana-symbol">')
-          .replace(/\{U\}/g, '<img src="../Pictures/Blue.png" alt="Blue" class="mana-symbol">')
-          .replace(/\{B\}/g, '<img src="../Pictures/Black.png" alt="Black" class="mana-symbol">')
-          .replace(/\{R\}/g, '<img src="../Pictures/Red.png" alt="Red" class="mana-symbol">')
-          .replace(/\{G\}/g, '<img src="../Pictures/Green.png" alt="Green" class="mana-symbol">');
+          .replace(/\{1\}/g, '<img src="../pictures/1.png" alt="1" class="mana-symbol">')
+          .replace(/\{2\}/g, '<img src="../pictures/2.png" alt="2" class="mana-symbol">')
+          .replace(/\{3\}/g, '<img src="../pictures/3.png" alt="3" class="mana-symbol">')
+          .replace(/\{4\}/g, '<img src="../pictures/4.png" alt="4" class="mana-symbol">')
+          .replace(/\{5\}/g, '<img src="../pictures/5.png" alt="5" class="mana-symbol">')
+          .replace(/\{6\}/g, '<img src="../pictures/6.png" alt="6" class="mana-symbol">')
+          .replace(/\{7\}/g, '<img src="../pictures/7.png" alt="7" class="mana-symbol">')
+          .replace(/\{8\}/g, '<img src="../pictures/8.png" alt="8" class="mana-symbol">')
+          .replace(/\{9\}/g, '<img src="../pictures/9.png" alt="9" class="mana-symbol">')
+          .replace(/\{W\}/g, '<img src="../pictures/White.png" alt="White" class="mana-symbol">')
+          .replace(/\{U\}/g, '<img src="../pictures/Blue.png" alt="Blue" class="mana-symbol">')
+          .replace(/\{B\}/g, '<img src="../pictures/Black.png" alt="Black" class="mana-symbol">')
+          .replace(/\{R\}/g, '<img src="../pictures/Red.png" alt="Red" class="mana-symbol">')
+          .replace(/\{G\}/g, '<img src="../pictures/Green.png" alt="Green" class="mana-symbol">');
       }
 
       // Helper functions to generate image source and link URL for a card version.
@@ -442,10 +442,10 @@
           cardImgElement.alt = cardInfo.name;
           cardImgElement.addEventListener('error', function() {
             if (this.src.includes('Pictures%202') || this.src.includes('Pictures 2')) {
-              let fallbackPicture = "../Pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
+              let fallbackPicture = "../pictures/" + cardInfo.name.replace(/[\s',-]/g, '_') + ".png";
               this.src = fallbackPicture;
             } else {
-              this.src = "../Pictures/placeholder.png";
+              this.src = "../pictures/placeholder.png";
             }
           });
 
